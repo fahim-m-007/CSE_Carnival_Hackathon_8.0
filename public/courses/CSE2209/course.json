@@ -1,0 +1,187 @@
+{
+  "id": "course_cse2209",
+  "code": "CSE 2209",
+  "title": "Discrete Mathematics and Graph Theory",
+  "batch": "Batch 53",
+  "term": "Spring 2026",
+  "creatorId": "fac_03",
+  "creatorName": "Dr. Kazi Tanvir Ahmed",
+  "question": {
+    "id": "q_cse2209_mid",
+    "number": "Question 4(a)",
+    "title": "Kahn's Topological Sorting with Cycle Detection",
+    "prompt": "Implement Kahn's algorithm (BFS with in-degree array) in C++ to find a valid topological ordering of a directed graph with V vertices and E edges. If the graph contains a directed cycle, detect it and report that topological sort is impossible.",
+    "totalMarks": 5.0,
+    "bloomsLevel": "Apply / Analyze",
+    "authorInstructor": "Dr. Kazi Tanvir Ahmed (Course In-Charge)",
+    "solutionNotes": "1. Compute in-degree of every vertex. 2. Enqueue all vertices with in-degree 0. 3. While queue not empty, pop u, add to result order, decrement in-degree of all neighbors. If neighbor in-degree becomes 0, enqueue it. 4. If result.size() != V, cycle exists.",
+    "sectionSpecificAllowances": {
+      "sec_a": "Dr. Kazi Tanvir Ahmed: Output must state 'Cycle detected' if result count < V.",
+      "sec_b": "Prof. Tariq Mahmud: Both 0-indexed and 1-indexed vertex representations accepted.",
+      "sec_c": "Lec. Nusrat Jahan: DFS-based topological sort with 3-color cycle detection also accepted."
+    }
+  },
+  "rubricCriteria": [
+    {
+      "id": "crit_2209_1",
+      "title": "In-Degree Computation & Zero-Degree Initialization",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Understand",
+      "description": "Correctly calculates incoming edges for all nodes and pushes 0 in-degree nodes into a queue.",
+      "fullCredit": "Accurate in-degree count for all V vertices and pushes initial 0 in-degree nodes (1.5 marks).",
+      "partialCredit": "In-degree computed with minor indexing error or misses some 0 in-degree nodes (0.5 - 1.0 mark).",
+      "zeroCredit": "Wrong graph traversal setup or incorrect in-degree logic (0.0 marks)."
+    },
+    {
+      "id": "crit_2209_2",
+      "title": "BFS Edge Relaxation & Queue Traversal",
+      "weight": 2.0,
+      "maxMarks": 2.0,
+      "bloomLevel": "Apply",
+      "description": "Pops vertices, decrements neighbor degrees, and pushes when degree reaches 0.",
+      "fullCredit": "Correctly decrements neighbor degrees and pushes to queue precisely when in-degree drops to 0 (2.0 marks).",
+      "partialCredit": "Pushes neighbors without decrementing or pushes multiple times (1.0 mark).",
+      "zeroCredit": "Flawed BFS traversal that does not reduce in-degrees (0.0 marks)."
+    },
+    {
+      "id": "crit_2209_3",
+      "title": "Cycle Detection Verification",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Analyze",
+      "description": "Verifies whether processed vertex count equals V; identifies directed cycle.",
+      "fullCredit": "Explicitly compares count/result.size() against V and returns or prints cycle detection (1.5 marks).",
+      "partialCredit": "Outputs partial topological order but forgets cycle check (0.5 - 1.0 mark).",
+      "zeroCredit": "No cycle detection logic (0.0 marks)."
+    }
+  ],
+  "penalties": [
+    {
+      "id": "pen_2209_1",
+      "title": "Missing Directed Cycle Guard",
+      "deduction": 1.5,
+      "description": "Returned partial ordering without validating whether visited count equals V."
+    },
+    {
+      "id": "pen_2209_2",
+      "title": "Duplicate Queue Insertions",
+      "deduction": 0.5,
+      "description": "In-degree decremented past zero leading to redundant node reprocessing."
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec_a",
+      "name": "Section A",
+      "enrolled": 54,
+      "teacherId": "fac_03",
+      "teacherName": "Dr. Kazi Tanvir Ahmed",
+      "teacherDesignation": "Associate Professor",
+      "role": "Course In-Charge",
+      "teachingNotes": "Graph theory, DAG properties, Kahn's algorithm, and topological properties.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2209_a1",
+          "studentId": "20210104402",
+          "studentName": "Tahsin Hasan",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Dr. Kazi Tanvir Ahmed",
+          "submittedCode": "#include <vector>\n#include <queue>\n#include <iostream>\n\nstd::vector<int> topologicalSort(int V, const std::vector<std::vector<int>>& adj) {\n    std::vector<int> inDegree(V, 0);\n    for (int u = 0; u < V; ++u) {\n        for (int v : adj[u]) inDegree[v]++;\n    }\n    \n    std::queue<int> q;\n    for (int i = 0; i < V; ++i) {\n        if (inDegree[i] == 0) q.push(i);\n    }\n    \n    std::vector<int> order;\n    while (!q.empty()) {\n        int u = q.front();\n        q.pop();\n        order.push_back(u);\n        \n        for (int v : adj[u]) {\n            if (--inDegree[v] == 0) q.push(v);\n        }\n    }\n    \n    if (order.size() != V) {\n        std::cerr << \"Cycle detected! Topological sort impossible.\" << std::endl;\n        return {};\n    }\n    return order;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Exemplary implementation of Kahn's Algorithm with cycle check.",
+          "breakdown": [
+            { "criterionId": "crit_2209_1", "title": "In-Degree Computation & Zero-Degree Initialization", "awarded": 1.5, "max": 1.5, "comment": "All in-degrees and queue initialization correct." },
+            { "criterionId": "crit_2209_2", "title": "BFS Edge Relaxation & Queue Traversal", "awarded": 2.0, "max": 2.0, "comment": "Clean in-degree decrement and push on 0." },
+            { "criterionId": "crit_2209_3", "title": "Cycle Detection Verification", "awarded": 1.5, "max": 1.5, "comment": "Correct order.size() != V cycle check." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Mastery of Kahn's topological sort and DAG cycle detection."
+        }
+      ]
+    },
+    {
+      "id": "sec_b",
+      "name": "Section B",
+      "enrolled": 52,
+      "teacherId": "fac_01",
+      "teacherName": "Prof. Tariq Mahmud",
+      "teacherDesignation": "Professor",
+      "role": "Section Teacher",
+      "teachingNotes": "Dependency resolution in build systems, DAG schedule analysis.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2209_b1",
+          "studentId": "20210104445",
+          "studentName": "Sharmin Sultana",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "vector<int> topoSort(int V, vector<int> adj[]) {\n    vector<int> in_degree(V, 0);\n    for(int i=0; i<V; i++) {\n        for(auto x: adj[i]) in_degree[x]++;\n    }\n    queue<int> q;\n    for(int i=0; i<V; i++) if(in_degree[i] == 0) q.push(i);\n    vector<int> ans;\n    while(!q.empty()) {\n        int node = q.front(); q.pop();\n        ans.push_back(node);\n        for(auto it: adj[node]) {\n            in_degree[it]--;\n            if(in_degree[it] == 0) q.push(it);\n        }\n    }\n    // Omitted cycle check, returns partial list if cycle exists\n    return ans;\n}",
+          "baseAiScore": 3.5,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Standard Kahn's algorithm works, but forgot to check ans.size() != V for cycle detection per question instructions.",
+          "breakdown": [
+            { "criterionId": "crit_2209_1", "title": "In-Degree Computation & Zero-Degree Initialization", "awarded": 1.5, "max": 1.5, "comment": "Accurate in-degree initialization." },
+            { "criterionId": "crit_2209_2", "title": "BFS Edge Relaxation & Queue Traversal", "awarded": 2.0, "max": 2.0, "comment": "Standard BFS traversal." },
+            { "criterionId": "crit_2209_3", "title": "Cycle Detection Verification", "awarded": 0.0, "max": 1.5, "comment": "Missing cycle detection check." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 3.5,
+          "feedbackNote": "Remember to verify if ans.size() == V; if fewer nodes were placed in the topological ordering, the graph has a cycle!"
+        }
+      ]
+    },
+    {
+      "id": "sec_c",
+      "name": "Section C",
+      "enrolled": 50,
+      "teacherId": "fac_02",
+      "teacherName": "Lec. Nusrat Jahan",
+      "teacherDesignation": "Lecturer",
+      "role": "Section Teacher",
+      "teachingNotes": "Comparative analysis of DFS vs BFS topological algorithms.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2209_c1",
+          "studentId": "20210104478",
+          "studentName": "Imran Nazir",
+          "section": "sec_c",
+          "sectionName": "Section C",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "// Section C Student - 3-color DFS approach\nbool dfs(int u, vector<int>& color, vector<int> adj[], vector<int>& res) {\n    color[u] = 1; // GRAY: visiting\n    for (int v : adj[u]) {\n        if (color[v] == 1) return true; // Cycle detected\n        if (color[v] == 0 && dfs(v, color, adj, res)) return true;\n    }\n    color[u] = 2; // BLACK: visited\n    res.push_back(u);\n    return false;\n}\n\nvector<int> topoSortDFS(int V, vector<int> adj[]) {\n    vector<int> color(V, 0), res;\n    for (int i = 0; i < V; i++) {\n        if (color[i] == 0 && dfs(i, color, adj, res)) {\n            cout << \"Cycle detected!\" << endl;\n            return {};\n        }\n    }\n    reverse(res.begin(), res.end());\n    return res;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Used DFS with 3-color cycle detection as permitted in Section C syllabus guidelines. Clean and correct.",
+          "breakdown": [
+            { "criterionId": "crit_2209_1", "title": "In-Degree Computation & Zero-Degree Initialization", "awarded": 1.5, "max": 1.5, "comment": "Alternative DFS visited coloring initialized." },
+            { "criterionId": "crit_2209_2", "title": "BFS Edge Relaxation & Queue Traversal", "awarded": 2.0, "max": 2.0, "comment": "Recursive DFS traversal pushes post-order." },
+            { "criterionId": "crit_2209_3", "title": "Cycle Detection Verification", "awarded": 1.5, "max": 1.5, "comment": "Back-edge detection with color[v] == 1." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Excellent demonstration of DFS back-edge detection for DAGs."
+        }
+      ]
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam_cse2209_mid",
+      "title": "Midterm Exam (Spring 2026)",
+      "date": "2026-03-28",
+      "totalMarks": 20.0,
+      "questionsCount": 4,
+      "status": "GRADING_IN_PROGRESS"
+    }
+  ]
+}

@@ -59,8 +59,25 @@ function App() {
   // Course Handlers
   const handleSelectCourse = (course) => {
     setActiveCourse(course);
-    setSelectedSection(course.sections[0]?.id || 'sec_a');
+    const initialSec = course.sections?.[0]?.id || 'sec_a';
+    setSelectedSection(initialSec);
     setActiveCourseTab('rubric');
+
+    // Load question, rubric, penalties, and student scripts from selected course JSON
+    if (course.question) setQuestion(course.question);
+    if (course.rubricCriteria) setRubricCriteria(course.rubricCriteria);
+    if (course.penalties) setPenalties(course.penalties);
+
+    // Aggregate all preloaded student scripts from each section of this course
+    const allCourseScripts = (course.sections || []).flatMap(sec =>
+      (sec.studentScripts || []).map(scr => ({
+        ...scr,
+        section: scr.section || sec.id,
+        sectionName: scr.sectionName || sec.name,
+        sectionTeacher: scr.sectionTeacher || sec.teacherName
+      }))
+    );
+    setStudentScripts(allCourseScripts);
   };
 
   const handleBackToDashboard = () => {
@@ -167,6 +184,7 @@ function App() {
                 setStudentScripts={setStudentScripts}
                 course={activeCourse}
                 selectedSection={selectedSection}
+                onSelectSection={setSelectedSection}
                 rubricCriteria={rubricCriteria}
                 penalties={penalties}
                 question={question}

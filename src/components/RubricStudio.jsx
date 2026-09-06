@@ -11,10 +11,11 @@ import {
   AlertTriangle,
   BookOpen,
   Info,
-  Layers
+  Layers,
+  ArrowRight,
+  X
 } from 'lucide-react';
 import { generateRubricWithAI } from '../services/aiAssessmentService';
-import { ArrowRight } from 'lucide-react';
 
 export function RubricStudio({
   question,
@@ -31,6 +32,12 @@ export function RubricStudio({
 }) {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Custom Penalty Creation State
+  const [isAddingPenalty, setIsAddingPenalty] = useState(false);
+  const [customPenaltyTitle, setCustomPenaltyTitle] = useState('');
+  const [customDeduction, setCustomDeduction] = useState(1.0);
+  const [customPenaltyDescription, setCustomPenaltyDescription] = useState('');
 
   const currentSection = courseData.sections.find(s => s.id === selectedSection) || courseData.sections[0];
   const sectionAllowance = question.sectionSpecificAllowances?.[selectedSection] || '';
@@ -52,14 +59,32 @@ export function RubricStudio({
     );
   };
 
-  const handleAddPenalty = () => {
+  const handleOpenAddPenalty = () => {
+    setIsAddingPenalty(true);
+  };
+
+  const handleSavePenalty = (e) => {
+    if (e) e.preventDefault();
+    if (!customPenaltyTitle.trim()) return;
+    const deductionVal = Math.max(0.1, parseFloat(customDeduction) || 1.0);
     const newPen = {
       id: `pen_${Date.now()}`,
-      title: "Custom Penalty Constraint",
-      deduction: 1.0,
-      description: "Deduction for specific code defect or constraint violation."
+      title: customPenaltyTitle.trim(),
+      deduction: Number(deductionVal.toFixed(1)),
+      description: customPenaltyDescription.trim() || `Deduction of ${deductionVal.toFixed(1)} mark(s) for ${customPenaltyTitle.trim()}.`
     };
     setPenalties(prev => [...prev, newPen]);
+    setCustomPenaltyTitle('');
+    setCustomDeduction(1.0);
+    setCustomPenaltyDescription('');
+    setIsAddingPenalty(false);
+  };
+
+  const handlePenaltyDeductionChange = (id, newDeduction) => {
+    const val = Math.max(0.1, parseFloat(newDeduction) || 0.1);
+    setPenalties(prev =>
+      prev.map(p => p.id === id ? { ...p, deduction: Number(val.toFixed(1)) } : p)
+    );
   };
 
   const handleRemovePenalty = (id) => {
@@ -378,35 +403,250 @@ export function RubricStudio({
 
             {/* Penalty Constraints */}
             <div style={{ marginTop: '24px', borderTop: '1px solid var(--aust-slate-200)', paddingTop: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--aust-slate-900)' }}>
-                  Standard Penalty Constraints (Deductions)
-                </h4>
-                {!isLocked && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--aust-slate-900)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    Standard Penalty Constraints (Deductions)
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--aust-slate-500)', background: 'var(--aust-slate-100)', padding: '2px 8px', borderRadius: '12px' }}>
+                      {penalties.length} active
+                    </span>
+                  </h4>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--aust-slate-500)', margin: '2px 0 0 0' }}>
+                    Define criteria-specific deductions (e.g. complexity violations, missing guards). Teachers can type custom penalties and select marks deducted.
+                  </p>
+                </div>
+
+                {!isLocked && !isAddingPenalty && (
                   <button
-                    onClick={handleAddPenalty}
-                    style={{ fontSize: '0.8rem', color: 'var(--aust-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={handleOpenAddPenalty}
+                    className="btn-secondary"
+                    style={{ fontSize: '0.8rem', color: 'var(--aust-red)', borderColor: 'var(--aust-red-border)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}
                   >
-                    <Plus size={14} /> Add Penalty Rule
+                    <Plus size={14} /> Add Custom Penalty Rule
                   </button>
                 )}
               </div>
 
+              {/* Add Custom Penalty Panel */}
+              {isAddingPenalty && !isLocked && (
+                <div style={{
+                  background: 'var(--aust-white)',
+                  border: '2px solid #fca5a5',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px 18px',
+                  marginBottom: '16px',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.08)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        background: 'var(--aust-red-light)',
+                        color: 'var(--aust-red)',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.5px'
+                      }}>
+                        NEW PENALTY
+                      </span>
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--aust-slate-900)' }}>
+                        Define Custom Penalty & Select Deduction Marks
+                      </strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingPenalty(false)}
+                      style={{ color: 'var(--aust-slate-400)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                      title="Cancel"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                    {/* Penalty Title Input */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--aust-slate-700)', marginBottom: '5px' }}>
+                        Custom Penalty Name / Reason *
+                      </label>
+                      <input
+                        type="text"
+                        value={customPenaltyTitle}
+                        onChange={(e) => setCustomPenaltyTitle(e.target.value)}
+                        placeholder="e.g., Space Complexity Violation (> O(1)), Infinite Loop, Missing Edge Case"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: '0.85rem',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1.5px solid var(--aust-slate-300)',
+                          outline: 'none'
+                        }}
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Marks Deducted Selector */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--aust-slate-700)', marginBottom: '5px' }}>
+                        Select Marks Deducted (-M) *
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        {[0.5, 1.0, 1.5, 2.0, 2.5, 3.0].map((val) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setCustomDeduction(val)}
+                            style={{
+                              padding: '5px 9px',
+                              fontSize: '0.78rem',
+                              fontWeight: customDeduction === val ? 800 : 600,
+                              borderRadius: '4px',
+                              border: customDeduction === val ? '1.5px solid var(--aust-red)' : '1px solid var(--aust-slate-300)',
+                              background: customDeduction === val ? 'var(--aust-red-light)' : 'var(--aust-white)',
+                              color: customDeduction === val ? 'var(--aust-red)' : 'var(--aust-slate-700)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            -{val.toFixed(1)} M
+                          </button>
+                        ))}
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--aust-slate-500)', fontWeight: 600 }}>Custom:</span>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0.1"
+                            max={question.totalMarks || 5.0}
+                            value={customDeduction}
+                            onChange={(e) => setCustomDeduction(parseFloat(e.target.value) || 0.1)}
+                            style={{
+                              width: '60px',
+                              padding: '4px 6px',
+                              fontSize: '0.82rem',
+                              borderRadius: '4px',
+                              border: '1.5px solid var(--aust-slate-300)',
+                              fontWeight: 700,
+                              textAlign: 'center'
+                            }}
+                          />
+                          <span style={{ fontSize: '0.78rem', color: 'var(--aust-slate-600)' }}>M</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description input */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--aust-slate-700)', marginBottom: '5px' }}>
+                      Penalty Condition / Context Note (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={customPenaltyDescription}
+                      onChange={(e) => setCustomPenaltyDescription(e.target.value)}
+                      placeholder="e.g., Applies if student allocates auxiliary buffer instead of in-place pointer reversal."
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        fontSize: '0.85rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1.5px solid var(--aust-slate-300)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingPenalty(false)}
+                      className="btn-secondary"
+                      style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSavePenalty}
+                      className="btn-primary"
+                      disabled={!customPenaltyTitle.trim()}
+                      style={{
+                        padding: '6px 16px',
+                        fontSize: '0.82rem',
+                        background: customPenaltyTitle.trim() ? 'var(--aust-red)' : 'var(--aust-slate-300)',
+                        borderColor: customPenaltyTitle.trim() ? 'var(--aust-red)' : 'var(--aust-slate-300)',
+                        cursor: customPenaltyTitle.trim() ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Plus size={14} /> Add -{Number(customDeduction).toFixed(1)} Mark Penalty
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Active Penalties List */}
               <div className="penalty-chip-list">
                 {penalties.map((pen) => (
-                  <div key={pen.id} className="penalty-chip">
-                    <div>
-                      <span className="penalty-deduction">-{pen.deduction.toFixed(1)} Mark</span>
-                      <strong style={{ marginLeft: '8px', color: 'var(--aust-slate-800)' }}>{pen.title}</strong>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--aust-slate-600)', marginTop: '2px' }}>
+                  <div key={pen.id} className="penalty-chip" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        {!isLocked ? (
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              background: 'var(--aust-white)',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: '1.5px solid var(--aust-red-border)'
+                            }}
+                            title="Select or type marks deducted for this penalty"
+                          >
+                            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--aust-red)' }}>-</span>
+                            <input
+                              type="number"
+                              step="0.5"
+                              min="0.1"
+                              max={question.totalMarks || 5.0}
+                              value={pen.deduction}
+                              onChange={(e) => handlePenaltyDeductionChange(pen.id, e.target.value)}
+                              style={{
+                                width: '50px',
+                                padding: '1px 2px',
+                                fontSize: '0.82rem',
+                                border: 'none',
+                                outline: 'none',
+                                fontWeight: 800,
+                                color: 'var(--aust-red)',
+                                textAlign: 'center',
+                                background: 'transparent'
+                              }}
+                            />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--aust-red)' }}>Mark</span>
+                          </div>
+                        ) : (
+                          <span className="penalty-deduction">-{pen.deduction.toFixed(1)} Mark</span>
+                        )}
+                        <strong style={{ color: 'var(--aust-slate-800)', fontSize: '0.88rem' }}>{pen.title}</strong>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--aust-slate-600)', marginTop: '4px' }}>
                         {pen.description}
                       </div>
                     </div>
+
                     {!isLocked && (
                       <button
                         onClick={() => handleRemovePenalty(pen.id)}
-                        style={{ color: 'var(--aust-red)', marginLeft: '6px' }}
-                        title="Remove penalty"
+                        style={{ color: 'var(--aust-red)', marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                        title="Remove penalty constraint"
                       >
                         <Trash2 size={14} />
                       </button>

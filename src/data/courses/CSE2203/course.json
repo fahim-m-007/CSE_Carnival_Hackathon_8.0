@@ -1,0 +1,196 @@
+{
+  "id": "course_cse2203",
+  "code": "CSE 2203",
+  "title": "Microprocessors and Microcontrollers",
+  "batch": "Batch 53",
+  "term": "Spring 2026",
+  "creatorId": "fac_01",
+  "creatorName": "Prof. Tariq Mahmud",
+  "question": {
+    "id": "q_cse2203_mid",
+    "number": "Question 3(a)",
+    "title": "8086 Assembly String Palindrome Detection",
+    "prompt": "Write an 8086 Assembly Language procedure to verify whether a given $-terminated string in data segment is a palindrome. Use SI and DI index registers with two-pointer comparison. Set AL = 1 if palindrome, AL = 0 otherwise.",
+    "totalMarks": 5.0,
+    "bloomsLevel": "Apply / Analyze",
+    "authorInstructor": "Dr. Kazi Tanvir Ahmed (Section B Teacher)",
+    "solutionNotes": "Find string length using SCASB or loop until '$'. Point SI to start, DI to last valid character. Compare [SI] and [DI], advance SI, decrement DI until SI >= DI. Handle single char and empty strings.",
+    "sectionSpecificAllowances": {
+      "sec_a": "Prof. Tariq Mahmud: Both CMPSB with Direction Flag manipulation or explicit CMP [SI], [DI] are acceptable.",
+      "sec_b": "Dr. Kazi Tanvir Ahmed: Requires preservation of altered registers using PUSH/POP standard calling convention."
+    }
+  },
+  "rubricCriteria": [
+    {
+      "id": "crit_2203_1",
+      "title": "Length Calculation & Index Setup",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Understand",
+      "description": "Correct determination of string length and setting SI to string start and DI to the last character before '$'.",
+      "fullCredit": "Accurate scanning up to '$', correctly initializes SI and DI without off-by-one errors (1.5 marks).",
+      "partialCredit": "Calculates length but includes the '$' delimiter in the comparison or off-by-one (0.5 - 1.0 mark).",
+      "zeroCredit": "Fails to find string boundaries or uses hardcoded string length (0.0 marks)."
+    },
+    {
+      "id": "crit_2203_2",
+      "title": "Two-Pointer Assembly Comparison Loop",
+      "weight": 2.5,
+      "maxMarks": 2.5,
+      "bloomLevel": "Apply",
+      "description": "Comparison loop comparing [SI] with [DI], incrementing SI and decrementing DI, terminating when SI >= DI.",
+      "fullCredit": "Flawless loop structure, correct byte comparison, proper conditional jumps (JE, JAE, JMP) (2.5 marks).",
+      "partialCredit": "Compares bytes correctly but loop termination logic creates an infinite loop or skips middle character (1.0 - 1.5 marks).",
+      "zeroCredit": "Incorrect memory dereferencing or syntax invalid for 8086 architecture (0.0 marks)."
+    },
+    {
+      "id": "crit_2203_3",
+      "title": "Output Flag & Register Hygiene",
+      "weight": 1.0,
+      "maxMarks": 1.0,
+      "bloomLevel": "Apply",
+      "description": "Properly sets AL = 1 for palindrome, AL = 0 for mismatch, and properly restores registers / RET.",
+      "fullCredit": "Correct return flags in AL, clean RET instruction, and preserves clobbered registers (1.0 mark).",
+      "partialCredit": "Sets AL correctly but omits RET or clobbers caller registers (0.5 marks).",
+      "zeroCredit": "Wrong return register or missing return statement (0.0 marks)."
+    }
+  ],
+  "penalties": [
+    {
+      "id": "pen_2203_1",
+      "title": "Register Clobbering / Missing PUSH-POP",
+      "deduction": 1.0,
+      "description": "Modified general registers BX, CX, DX without pushing and popping them."
+    },
+    {
+      "id": "pen_2203_2",
+      "title": "Off-by-One Delimiter Comparison",
+      "deduction": 0.5,
+      "description": "Compared the '$' terminator itself instead of actual last character."
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec_a",
+      "name": "Section A",
+      "enrolled": 50,
+      "teacherId": "fac_01",
+      "teacherName": "Prof. Tariq Mahmud",
+      "teacherDesignation": "Professor",
+      "role": "Course In-Charge",
+      "teachingNotes": "Emphasized string primitive instructions and 8086 addressing modes.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2203_a1",
+          "studentId": "20210104012",
+          "studentName": "Shahriar Kabir",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "; 8086 Palindrome Checker - Section A\nCHECK_PALINDROME PROC\n    PUSH SI\n    PUSH DI\n    PUSH CX\n    \n    MOV DI, SI\nFIND_LEN:\n    CMP BYTE PTR [DI], '$'\n    JE  GOT_LEN\n    INC DI\n    JMP FIND_LEN\nGOT_LEN:\n    DEC DI              ; Point to last valid char\nCOMPARE_LOOP:\n    CMP SI, DI\n    JAE IS_PALIN\n    MOV AL, [SI]\n    CMP AL, [DI]\n    JNE NOT_PALIN\n    INC SI\n    DEC DI\n    JMP COMPARE_LOOP\nIS_PALIN:\n    MOV AL, 1\n    JMP DONE\nNOT_PALIN:\n    MOV AL, 0\nDONE:\n    POP CX\n    POP DI\n    POP SI\n    RET\nCHECK_PALINDROME ENDP",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Exemplary 8086 assembly procedure. Proper register preservation and boundary checks.",
+          "breakdown": [
+            { "criterionId": "crit_2203_1", "title": "Length Calculation & Index Setup", "awarded": 1.5, "max": 1.5, "comment": "Found length correctly and decremented DI." },
+            { "criterionId": "crit_2203_2", "title": "Two-Pointer Assembly Comparison Loop", "awarded": 2.5, "max": 2.5, "comment": "Correct SI/DI pointer arithmetic and byte comparison." },
+            { "criterionId": "crit_2203_3", "title": "Output Flag & Register Hygiene", "awarded": 1.0, "max": 1.0, "comment": "Pushed and popped registers; set AL return value." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Excellent assembly structure with pristine calling conventions."
+        },
+        {
+          "id": "scr_cse2203_a2",
+          "studentId": "20210104033",
+          "studentName": "Tasnia Farooq",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "; Section A - Student Submission\nCHECK_PAL PROC\n    MOV DI, SI\nL1:\n    CMP [DI], '$'\n    JE L2\n    INC DI\n    JMP L1\nL2:\n    ; Missed DEC DI, compares '$'\nCHECK_LOOP:\n    CMP SI, DI\n    JAE TRUE_EXIT\n    MOV BL, [SI]\n    CMP BL, [DI]\n    JNE FALSE_EXIT\n    INC SI\n    DEC DI\n    JMP CHECK_LOOP\nTRUE_EXIT:\n    MOV AL, 1\n    RET\nFALSE_EXIT:\n    MOV AL, 0\n    RET\nCHECK_PAL ENDP",
+          "baseAiScore": 3.5,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Missed decrementing DI before loop, causing comparison with '$' terminator. Also did not preserve BL register.",
+          "breakdown": [
+            { "criterionId": "crit_2203_1", "title": "Length Calculation & Index Setup", "awarded": 1.0, "max": 1.5, "comment": "Off-by-one error: DI still points to '$'." },
+            { "criterionId": "crit_2203_2", "title": "Two-Pointer Assembly Comparison Loop", "awarded": 2.0, "max": 2.5, "comment": "Loop logic works once boundary bug is bypassed." },
+            { "criterionId": "crit_2203_3", "title": "Output Flag & Register Hygiene", "awarded": 0.5, "max": 1.0, "comment": "Sets AL correctly, but clobbers BL without push/pop." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 3.5,
+          "feedbackNote": "Remember that after finding '$', you must decrement DI to point to the character right before the delimiter."
+        }
+      ]
+    },
+    {
+      "id": "sec_b",
+      "name": "Section B",
+      "enrolled": 48,
+      "teacherId": "fac_03",
+      "teacherName": "Dr. Kazi Tanvir Ahmed",
+      "teacherDesignation": "Associate Professor",
+      "role": "Section Teacher",
+      "teachingNotes": "Emphasis on modular programming, interrupts, and memory-mapped IO.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2203_b1",
+          "studentId": "20210104068",
+          "studentName": "Mahir Faysal",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Dr. Kazi Tanvir Ahmed",
+          "submittedCode": "; Section B - Modular 8086 Assembly\nPALINDROME_VERIFY PROC FAR\n    PUSH BP\n    MOV BP, SP\n    PUSH SI\n    PUSH DI\n    \n    MOV SI, [BP+6]       ; String address from stack\n    MOV DI, SI\nFIND_END:\n    CMP BYTE PTR [DI], '$'\n    JE  CALC_DONE\n    INC DI\n    JMP FIND_END\nCALC_DONE:\n    DEC DI\nTEST_LOOP:\n    CMP SI, DI\n    JGE PALIN_SUCCESS\n    MOV AH, [SI]\n    CMP AH, [DI]\n    JNE PALIN_FAIL\n    INC SI\n    DEC DI\n    JMP TEST_LOOP\nPALIN_SUCCESS:\n    MOV AL, 1\n    JMP CLEANUP\nPALIN_FAIL:\n    MOV AL, 0\nCLEANUP:\n    POP DI\n    POP SI\n    POP BP\n    RET 2\nPALINDROME_VERIFY ENDP",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Used stack parameter passing (BP) and FAR call conventions as taught in Section B. Flawless execution.",
+          "breakdown": [
+            { "criterionId": "crit_2203_1", "title": "Length Calculation & Index Setup", "awarded": 1.5, "max": 1.5, "comment": "Stack parameter unpacked; end-pointer decremented." },
+            { "criterionId": "crit_2203_2", "title": "Two-Pointer Assembly Comparison Loop", "awarded": 2.5, "max": 2.5, "comment": "JGE comparison correctly terminates." },
+            { "criterionId": "crit_2203_3", "title": "Output Flag & Register Hygiene", "awarded": 1.0, "max": 1.0, "comment": "Proper BP frame restoration with RET 2." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Superb stack frame usage and clean modular code."
+        },
+        {
+          "id": "scr_cse2203_b2",
+          "studentId": "20210104077",
+          "studentName": "Anika Tabassum",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Dr. Kazi Tanvir Ahmed",
+          "submittedCode": "; Section B Student Submission\nCHECK_P PROC\n    MOV DI, SI\nSCAN_LEN:\n    CMP BYTE PTR [DI], '$'\n    JE DONE_SCAN\n    INC DI\n    JMP SCAN_LEN\nDONE_SCAN:\n    DEC DI\nCOMP:\n    CMP SI, DI\n    JA YES\n    MOV AL, [SI]\n    CMP AL, [DI]\n    JNE NO\n    INC SI\n    DEC DI\n    JMP COMP\nYES:\n    MOV AL, 1\n    RET\nNO:\n    MOV AL, 0\n    RET\nCHECK_P ENDP",
+          "baseAiScore": 4.5,
+          "maxMarks": 5.0,
+          "status": "MODERATION_PENDING",
+          "evaluatorNotes": "Used JA instead of JAE; single-letter strings or odd-length strings evaluate properly, but omitted stack frame.",
+          "breakdown": [
+            { "criterionId": "crit_2203_1", "title": "Length Calculation & Index Setup", "awarded": 1.5, "max": 1.5, "comment": "Correct scan and decrement." },
+            { "criterionId": "crit_2203_2", "title": "Two-Pointer Assembly Comparison Loop", "awarded": 2.0, "max": 2.5, "comment": "JA instead of JAE triggers one extra iteration on odd lengths." },
+            { "criterionId": "crit_2203_3", "title": "Output Flag & Register Hygiene", "awarded": 1.0, "max": 1.0, "comment": "Returns proper flag in AL." }
+          ],
+          "courseTeacherAdjustment": 0.5,
+          "adjustmentReason": "Section B allowance: Taught SI == DI comparison in loop body. Awarded 0.5 moderation credit.",
+          "finalMarks": 5.0,
+          "feedbackNote": "Logic is sound; using JAE or JGE prevents redundant comparison when SI and DI meet at middle character."
+        }
+      ]
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam_cse2203_mid",
+      "title": "Midterm Examination (Theory)",
+      "date": "2026-03-18",
+      "totalMarks": 20.0,
+      "questionsCount": 4,
+      "status": "GRADING_IN_PROGRESS"
+    }
+  ]
+}

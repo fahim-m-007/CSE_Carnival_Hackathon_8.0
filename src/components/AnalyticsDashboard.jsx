@@ -33,7 +33,7 @@ export function AnalyticsDashboard({ studentScripts, courseData }) {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `AUST_CSE2101_Batch53_Calibrated_Grades.csv`);
+    link.setAttribute("download", `AUST_${(courseData?.code || 'CSE').replace(/\s+/g, '_')}_${courseData?.batch || 'Batch53'}_Calibrated_Grades.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

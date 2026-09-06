@@ -1,0 +1,209 @@
+{
+  "id": "course_cse2205",
+  "code": "CSE 2205",
+  "title": "Numerical Methods",
+  "batch": "Batch 53",
+  "term": "Spring 2026",
+  "creatorId": "fac_02",
+  "creatorName": "Lec. Nusrat Jahan",
+  "question": {
+    "id": "q_cse2205_mid",
+    "number": "Question 1(c)",
+    "title": "Newton-Raphson Root Finding with Convergence Guard",
+    "prompt": "Implement a C/C++ function `double newtonRaphson(double x0, double tol, int maxIter)` to find the root of a non-linear equation f(x) = 0. Guard against division by zero (when |f'(x)| < 1e-9) and report non-convergence if max iterations exceeded.",
+    "totalMarks": 5.0,
+    "bloomsLevel": "Apply / Evaluate",
+    "authorInstructor": "Lec. Nusrat Jahan (Course In-Charge)",
+    "solutionNotes": "Formula: x_next = x - f(x)/f'(x). Check if fabs(f_prime(x)) < EPS to prevent division by zero. Iterate while fabs(x_next - x) > tol up to maxIter. Return NAN or print error if divergent.",
+    "sectionSpecificAllowances": {
+      "sec_a": "Lec. Nusrat Jahan: Emphasized relative error metric |(x_next - x)/x_next| < tol.",
+      "sec_b": "Prof. Tariq Mahmud: Absolute error metric |f(x)| < tol or |x_next - x| < tol accepted.",
+      "sec_c": "Dr. Kazi Tanvir Ahmed: Check for derivative singularity must return explicit code or status flag."
+    }
+  },
+  "rubricCriteria": [
+    {
+      "id": "crit_2205_1",
+      "title": "Derivative Singularity Guard",
+      "weight": 1.0,
+      "maxMarks": 1.0,
+      "bloomLevel": "Understand",
+      "description": "Checks if the derivative f'(x) is close to zero before performing division.",
+      "fullCredit": "Explicitly verifies fabs(df) > 1e-9; halts or throws warning if zero derivative encountered (1.0 mark).",
+      "partialCredit": "Mentions derivative check but tolerance is incorrectly 0.0 or placed after division (0.5 marks).",
+      "zeroCredit": "No singularity check; risks floating-point exception or division by zero (0.0 marks)."
+    },
+    {
+      "id": "crit_2205_2",
+      "title": "Iterative Step & Convergence Logic",
+      "weight": 2.5,
+      "maxMarks": 2.5,
+      "bloomLevel": "Apply",
+      "description": "Correct Newton-Raphson update step x = x - f(x)/f'(x) and stopping criteria.",
+      "fullCredit": "Accurate iterative formula, properly compares step difference against tol, respects maxIter (2.5 marks).",
+      "partialCredit": "Correct formula but infinite loop risk or stopping criteria checked incorrectly (1.0 - 1.5 marks).",
+      "zeroCredit": "Wrong numerical formula used (e.g., Bisection or Secant instead of Newton-Raphson) (0.0 marks)."
+    },
+    {
+      "id": "crit_2205_3",
+      "title": "Convergence Status Reporting",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Analyze",
+      "description": "Returns calculated root or handles non-convergence gracefully.",
+      "fullCredit": "Returns root when converged; outputs clear warning/NAN when maxIter reached (1.5 marks).",
+      "partialCredit": "Returns last value of x without indicating if convergence was attained (0.5 - 1.0 mark).",
+      "zeroCredit": "Does not return root or crashes (0.0 marks)."
+    }
+  ],
+  "penalties": [
+    {
+      "id": "pen_2205_1",
+      "title": "Unchecked Zero Division",
+      "deduction": 1.0,
+      "description": "Divided by f'(x) directly without tolerance threshold check."
+    },
+    {
+      "id": "pen_2205_2",
+      "title": "Infinite Loop / Missing Iteration Bound",
+      "deduction": 1.5,
+      "description": "While loop has no maxIter limit, causing program freeze if method oscillates."
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec_a",
+      "name": "Section A",
+      "enrolled": 52,
+      "teacherId": "fac_02",
+      "teacherName": "Lec. Nusrat Jahan",
+      "teacherDesignation": "Lecturer",
+      "role": "Course In-Charge",
+      "teachingNotes": "Emphasized quadratic convergence rate and relative error stopping condition.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2205_a1",
+          "studentId": "20210104201",
+          "studentName": "Zubair Al Mahmud",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "#include <cmath>\n#include <iostream>\n\ndouble newtonRaphson(double x0, double tol, int maxIter) {\n    double x = x0;\n    for (int iter = 0; iter < maxIter; ++iter) {\n        double fx = f(x);\n        double dfx = df(x);\n        \n        if (std::fabs(dfx) < 1e-9) {\n            std::cerr << \"Error: Derivative near zero!\" << std::endl;\n            return NAN;\n        }\n        \n        double h = fx / dfx;\n        double x_next = x - h;\n        \n        if (std::fabs(h) < tol) {\n            return x_next;\n        }\n        x = x_next;\n    }\n    std::cerr << \"Warning: Did not converge within max iterations!\" << std::endl;\n    return x;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Robust C++ implementation. Catches zero derivative and warns on non-convergence.",
+          "breakdown": [
+            { "criterionId": "crit_2205_1", "title": "Derivative Singularity Guard", "awarded": 1.0, "max": 1.0, "comment": "std::fabs(dfx) < 1e-9 check active." },
+            { "criterionId": "crit_2205_2", "title": "Iterative Step & Convergence Logic", "awarded": 2.5, "max": 2.5, "comment": "Clean iterative update with bounded loop." },
+            { "criterionId": "crit_2205_3", "title": "Convergence Status Reporting", "awarded": 1.5, "max": 1.5, "comment": "Handles NAN and warnings properly." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Excellent adherence to numerical engineering principles."
+        },
+        {
+          "id": "scr_cse2205_a2",
+          "studentId": "20210104215",
+          "studentName": "Maliha Tasnim",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "double newtonRaphson(double x0, double tol, int maxIter) {\n    double x = x0;\n    while(true) { // Missing maxIter counter in condition\n        double h = f(x) / df(x); // Missing singularity check\n        x = x - h;\n        if (fabs(h) < tol) break;\n    }\n    return x;\n}",
+          "baseAiScore": 2.5,
+          "maxMarks": 5.0,
+          "status": "MODERATION_PENDING",
+          "evaluatorNotes": "Severe issue: no check for df(x) == 0 and while(true) can cause infinite loop if divergence occurs.",
+          "breakdown": [
+            { "criterionId": "crit_2205_1", "title": "Derivative Singularity Guard", "awarded": 0.0, "max": 1.0, "comment": "Missing derivative check." },
+            { "criterionId": "crit_2205_2", "title": "Iterative Step & Convergence Logic", "awarded": 1.5, "max": 2.5, "comment": "Formula correct, but unbounded loop." },
+            { "criterionId": "crit_2205_3", "title": "Convergence Status Reporting", "awarded": 1.0, "max": 1.5, "comment": "Returns root when it succeeds." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 2.5,
+          "feedbackNote": "Never write while(true) without an iteration cap in numerical algorithms, and always check the denominator."
+        }
+      ]
+    },
+    {
+      "id": "sec_b",
+      "name": "Section B",
+      "enrolled": 50,
+      "teacherId": "fac_01",
+      "teacherName": "Prof. Tariq Mahmud",
+      "teacherDesignation": "Professor",
+      "role": "Section Teacher",
+      "teachingNotes": "Focus on stability, error analysis, and order of convergence.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2205_b1",
+          "studentId": "20210104245",
+          "studentName": "Ashikur Rahman",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "double newtonRaphson(double x0, double tol, int maxIter) {\n    double x = x0;\n    int count = 0;\n    while (count < maxIter) {\n        double df_val = df(x);\n        if (fabs(df_val) < 1e-12) {\n            printf(\"Derivative too small\\n\");\n            return x;\n        }\n        double x_new = x - f(x) / df_val;\n        if (fabs(x_new - x) < tol) return x_new;\n        x = x_new;\n        count++;\n    }\n    return x;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Very clean implementation with both iteration guard and derivative threshold.",
+          "breakdown": [
+            { "criterionId": "crit_2205_1", "title": "Derivative Singularity Guard", "awarded": 1.0, "max": 1.0, "comment": "Checked with 1e-12 tolerance." },
+            { "criterionId": "crit_2205_2", "title": "Iterative Step & Convergence Logic", "awarded": 2.5, "max": 2.5, "comment": "Clear update and termination condition." },
+            { "criterionId": "crit_2205_3", "title": "Convergence Status Reporting", "awarded": 1.5, "max": 1.5, "comment": "Returns proper converged root." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Precise and reliable numerical routine."
+        }
+      ]
+    },
+    {
+      "id": "sec_c",
+      "name": "Section C",
+      "enrolled": 52,
+      "teacherId": "fac_03",
+      "teacherName": "Dr. Kazi Tanvir Ahmed",
+      "teacherDesignation": "Associate Professor",
+      "role": "Section Teacher",
+      "teachingNotes": "Comparison between Bisection, False-Position, and Newton-Raphson methods.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2205_c1",
+          "studentId": "20210104289",
+          "studentName": "Sumiya Akter",
+          "section": "sec_c",
+          "sectionName": "Section C",
+          "sectionTeacher": "Dr. Kazi Tanvir Ahmed",
+          "submittedCode": "double newtonRaphson(double x0, double tol, int maxIter) {\n    double x = x0;\n    for (int i = 0; i < maxIter; i++) {\n        double f_prime = df(x);\n        if (fabs(f_prime) < 1e-7) return -9999.0; // Status error code\n        double step = f(x) / f_prime;\n        x -= step;\n        if (fabs(step) < tol) return x;\n    }\n    return x;\n}",
+          "baseAiScore": 4.5,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Used status error code -9999.0 as taught in Section C. Meets all core criteria.",
+          "breakdown": [
+            { "criterionId": "crit_2205_1", "title": "Derivative Singularity Guard", "awarded": 1.0, "max": 1.0, "comment": "Guard present." },
+            { "criterionId": "crit_2205_2", "title": "Iterative Step & Convergence Logic", "awarded": 2.5, "max": 2.5, "comment": "Standard Newton-Raphson step." },
+            { "criterionId": "crit_2205_3", "title": "Convergence Status Reporting", "awarded": 1.0, "max": 1.5, "comment": "Magic number return instead of NAN or boolean flag." }
+          ],
+          "courseTeacherAdjustment": 0.5,
+          "adjustmentReason": "Section C allowance: Magic number -9999.0 accepted in Section C lecture 3.",
+          "finalMarks": 5.0,
+          "feedbackNote": "Correct algorithm. For production code prefer std::isnan or throwing an exception."
+        }
+      ]
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam_cse2205_mid",
+      "title": "Midterm Exam (Spring 2026)",
+      "date": "2026-03-22",
+      "totalMarks": 20.0,
+      "questionsCount": 4,
+      "status": "GRADING_IN_PROGRESS"
+    }
+  ]
+}

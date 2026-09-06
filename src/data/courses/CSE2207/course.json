@@ -1,0 +1,174 @@
+{
+  "id": "course_cse2207",
+  "code": "CSE 2207",
+  "title": "Object Oriented Programming II",
+  "batch": "Batch 53",
+  "term": "Spring 2026",
+  "creatorId": "fac_01",
+  "creatorName": "Prof. Tariq Mahmud",
+  "question": {
+    "id": "q_cse2207_mid",
+    "number": "Question 2(a)",
+    "title": "Thread-Safe Producer-Consumer Blocking Queue",
+    "prompt": "Implement a thread-safe bounded buffer `BlockingQueue<T>` in Java using `wait()`, `notifyAll()`, and explicit synchronized blocks or methods. Ensure safety against spurious wakeups and handle buffer overflow/underflow correctly.",
+    "totalMarks": 5.0,
+    "bloomsLevel": "Apply / Create",
+    "authorInstructor": "Prof. Tariq Mahmud (Course In-Charge)",
+    "solutionNotes": "Must use `while (queue.size() == capacity)` and `while (queue.isEmpty())` around `wait()` to guard against spurious wakeups (using if is a flaw). Must call `notifyAll()` instead of `notify()` to avoid deadlocks. Synchronize on shared intrinsic lock.",
+    "sectionSpecificAllowances": {
+      "sec_a": "Prof. Tariq Mahmud: Both synchronized method syntax and synchronized(this) block syntax accepted.",
+      "sec_b": "Lec. Nusrat Jahan: Explicit ReentrantLock with Condition variables (notEmpty, notFull) also accepted for full credit."
+    }
+  },
+  "rubricCriteria": [
+    {
+      "id": "crit_2207_1",
+      "title": "Synchronization & Mutual Exclusion",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Understand",
+      "description": "Ensures mutual exclusion on the shared buffer using synchronized monitor or locks.",
+      "fullCredit": "Correct intrinsic lock synchronization on all shared state accesses (1.5 marks).",
+      "partialCredit": "Synchronizes put() but forgets to synchronize take(), or unsynchronized size checks (0.5 - 1.0 mark).",
+      "zeroCredit": "No thread synchronization; race condition on queue access (0.0 marks)."
+    },
+    {
+      "id": "crit_2207_2",
+      "title": "Spurious Wakeup Guard (while vs if)",
+      "weight": 2.0,
+      "maxMarks": 2.0,
+      "bloomLevel": "Apply",
+      "description": "Guards wait() inside a while loop rather than a single if check.",
+      "fullCredit": "Uses `while(queue.isFull()) wait();` and `while(queue.isEmpty()) wait();` (2.0 marks).",
+      "partialCredit": "Uses `if` instead of `while` before `wait()`, vulnerable to spurious wakeups (1.0 mark).",
+      "zeroCredit": "Busy waiting with while(true) instead of wait/notify (0.0 marks)."
+    },
+    {
+      "id": "crit_2207_3",
+      "title": "Notification Strategy & Liveness",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Analyze",
+      "description": "Proper wake-up signaling using notifyAll() to avoid thread starvation or deadlock.",
+      "fullCredit": "Calls notifyAll() when an item is added or removed, preventing lost signals (1.5 marks).",
+      "partialCredit": "Calls notify() instead of notifyAll(), risking signal loss in multi-producer multi-consumer setup (1.0 mark).",
+      "zeroCredit": "Omits notify/notifyAll completely, causing waiting threads to sleep permanently (0.0 marks)."
+    }
+  ],
+  "penalties": [
+    {
+      "id": "pen_2207_1",
+      "title": "Spurious Wakeup Bug (if instead of while)",
+      "deduction": 1.0,
+      "description": "Checked condition with 'if' before wait(); breaks concurrency invariants on spurious wakeup."
+    },
+    {
+      "id": "pen_2207_2",
+      "title": "Potential Lost Wakeup / notify() instead of notifyAll()",
+      "deduction": 0.5,
+      "description": "Used notify() in multi-thread environment which can wake wrong waiter."
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec_a",
+      "name": "Section A",
+      "enrolled": 52,
+      "teacherId": "fac_01",
+      "teacherName": "Prof. Tariq Mahmud",
+      "teacherDesignation": "Professor",
+      "role": "Course In-Charge",
+      "teachingNotes": "Java Concurrency model, monitors, wait/notifyAll invariants.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2207_a1",
+          "studentId": "20210104302",
+          "studentName": "Nayeemur Rahman",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "public class BlockingQueue<T> {\n    private final Queue<T> queue = new LinkedList<>();\n    private final int capacity;\n\n    public BlockingQueue(int capacity) {\n        this.capacity = capacity;\n    }\n\n    public synchronized void put(T item) throws InterruptedException {\n        while (queue.size() == capacity) {\n            wait();\n        }\n        queue.add(item);\n        notifyAll();\n    }\n\n    public synchronized T take() throws InterruptedException {\n        while (queue.isEmpty()) {\n            wait();\n        }\n        T item = queue.poll();\n        notifyAll();\n        return item;\n    }\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Textbook perfection: guarded while loops against spurious wakeups and notifyAll() to prevent deadlocks.",
+          "breakdown": [
+            { "criterionId": "crit_2207_1", "title": "Synchronization & Mutual Exclusion", "awarded": 1.5, "max": 1.5, "comment": "All methods properly synchronized." },
+            { "criterionId": "crit_2207_2", "title": "Spurious Wakeup Guard (while vs if)", "awarded": 2.0, "max": 2.0, "comment": "while loop surrounds wait()." },
+            { "criterionId": "crit_2207_3", "title": "Notification Strategy & Liveness", "awarded": 1.5, "max": 1.5, "comment": "notifyAll() ensures liveness." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Flawless Java concurrency implementation."
+        },
+        {
+          "id": "scr_cse2207_a2",
+          "studentId": "20210104318",
+          "studentName": "Ananya Sen",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "public class BlockingQueue<T> {\n    private final Queue<T> queue = new LinkedList<>();\n    private final int capacity = 10;\n\n    public synchronized void put(T item) throws InterruptedException {\n        if (queue.size() == capacity) { // Used if instead of while!\n            wait();\n        }\n        queue.add(item);\n        notify(); // Used notify instead of notifyAll\n    }\n\n    public synchronized T take() throws InterruptedException {\n        if (queue.isEmpty()) { // Used if instead of while!\n            wait();\n        }\n        T item = queue.poll();\n        notify();\n        return item;\n    }\n}",
+          "baseAiScore": 3.5,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Deducted for using if() instead of while() before wait() and notify() instead of notifyAll().",
+          "breakdown": [
+            { "criterionId": "crit_2207_1", "title": "Synchronization & Mutual Exclusion", "awarded": 1.5, "max": 1.5, "comment": "Methods synchronized." },
+            { "criterionId": "crit_2207_2", "title": "Spurious Wakeup Guard (while vs if)", "awarded": 1.0, "max": 2.0, "comment": "if-condition vulnerable to spurious wakeups." },
+            { "criterionId": "crit_2207_3", "title": "Notification Strategy & Liveness", "awarded": 1.0, "max": 1.5, "comment": "notify() risks lost signal." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 3.5,
+          "feedbackNote": "Always loop around wait() in Java concurrency because the thread might wake up when the buffer condition is not yet satisfied."
+        }
+      ]
+    },
+    {
+      "id": "sec_b",
+      "name": "Section B",
+      "enrolled": 50,
+      "teacherId": "fac_02",
+      "teacherName": "Lec. Nusrat Jahan",
+      "teacherDesignation": "Lecturer",
+      "role": "Section Teacher",
+      "teachingNotes": "Java Concurrency Utilities, Locks, Conditions, and Atomic variables.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2207_b1",
+          "studentId": "20210104355",
+          "studentName": "Farhan Ishraq",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "import java.util.concurrent.locks.*;\n\npublic class BlockingQueue<T> {\n    private final Queue<T> queue = new LinkedList<>();\n    private final int capacity;\n    private final Lock lock = new ReentrantLock();\n    private final Condition notFull = lock.newCondition();\n    private final Condition notEmpty = lock.newCondition();\n\n    public BlockingQueue(int capacity) { this.capacity = capacity; }\n\n    public void put(T item) throws InterruptedException {\n        lock.lock();\n        try {\n            while (queue.size() == capacity) notFull.await();\n            queue.add(item);\n            notEmpty.signal();\n        } finally { lock.unlock(); }\n    }\n\n    public T take() throws InterruptedException {\n        lock.lock();\n        try {\n            while (queue.isEmpty()) notEmpty.await();\n            T it = queue.poll();\n            notFull.signal();\n            return it;\n        } finally { lock.unlock(); }\n    }\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Modern ReentrantLock + Condition implementation as taught in Section B. Extremely high quality.",
+          "breakdown": [
+            { "criterionId": "crit_2207_1", "title": "Synchronization & Mutual Exclusion", "awarded": 1.5, "max": 1.5, "comment": "Proper ReentrantLock with finally unlock." },
+            { "criterionId": "crit_2207_2", "title": "Spurious Wakeup Guard (while vs if)", "awarded": 2.0, "max": 2.0, "comment": "while loop before await()." },
+            { "criterionId": "crit_2207_3", "title": "Notification Strategy & Liveness", "awarded": 1.5, "max": 1.5, "comment": "Direct condition signaling (notEmpty / notFull)." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Professional grade multi-threading implementation."
+        }
+      ]
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam_cse2207_mid",
+      "title": "Midterm Exam (Spring 2026)",
+      "date": "2026-03-25",
+      "totalMarks": 20.0,
+      "questionsCount": 4,
+      "status": "GRADING_IN_PROGRESS"
+    }
+  ]
+}

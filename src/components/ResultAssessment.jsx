@@ -18,18 +18,25 @@ export function ResultAssessment({
   setStudentScripts,
   course,
   selectedSection,
+  onSelectSection,
   rubricCriteria,
   penalties,
   question,
   currentUser,
   isRubricLocked
 }) {
-  const [selectedStudentId, setSelectedStudentId] = useState(studentScripts[1]?.id || studentScripts[0]?.id);
+  const sectionScripts = studentScripts.filter(s => s.section === selectedSection);
+  const visibleScripts = sectionScripts.length > 0 ? sectionScripts : studentScripts;
+
+  const [selectedStudentId, setSelectedStudentId] = useState(
+    visibleScripts[0]?.id || studentScripts[0]?.id
+  );
   const [isEvaluating, setIsEvaluating] = useState(false);
 
-  const currentStudent = studentScripts.find(s => s.id === selectedStudentId) || studentScripts[0];
+  // Active student guaranteed to belong to visible section if possible
+  const currentStudent = visibleScripts.find(s => s.id === selectedStudentId) || visibleScripts[0] || studentScripts[0];
   const currentSectionObj = course.sections.find(s => s.id === selectedSection) || course.sections[0];
-  const isSectionTeacher = currentStudent.sectionTeacher === currentUser.name || currentStudent.section === selectedSection;
+  const isSectionTeacher = currentStudent ? (currentStudent.sectionTeacher === currentUser.name || currentStudent.section === selectedSection) : false;
 
   // AI Evaluation against the Locked Rubric
   const handleRunAiEvaluation = async () => {
@@ -156,13 +163,86 @@ export function ResultAssessment({
         </div>
       )}
 
+      {/* Interactive Section Switcher for Student Scripts */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        background: 'var(--aust-white)',
+        border: '1px solid var(--aust-slate-200)',
+        borderRadius: 'var(--radius-md)',
+        padding: '10px 16px',
+        marginBottom: '12px',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Layers size={18} color="var(--aust-green)" />
+          <div>
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--aust-slate-800)' }}>
+              Section Script Filter:
+            </span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--aust-slate-500)', marginLeft: '6px' }}>
+              Switch sections to view preloaded student scripts from JSON
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {course.sections.map((sec) => {
+            const isCurrentSec = (selectedSection === sec.id);
+            const count = studentScripts.filter(s => s.section === sec.id).length;
+            return (
+              <button
+                key={sec.id}
+                type="button"
+                onClick={() => {
+                  if (onSelectSection) onSelectSection(sec.id);
+                  const firstOfSec = studentScripts.find(s => s.section === sec.id);
+                  if (firstOfSec) setSelectedStudentId(firstOfSec.id);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.82rem',
+                  fontWeight: isCurrentSec ? 800 : 600,
+                  background: isCurrentSec ? 'var(--aust-green)' : 'var(--aust-slate-100)',
+                  color: isCurrentSec ? '#fff' : 'var(--aust-slate-700)',
+                  border: isCurrentSec ? '1.5px solid var(--aust-green-dark)' : '1px solid var(--aust-slate-300)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>{sec.name}</span>
+                <span style={{
+                  fontSize: '0.72rem',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  background: isCurrentSec ? 'rgba(255,255,255,0.28)' : 'var(--aust-slate-200)',
+                  color: isCurrentSec ? '#fff' : 'var(--aust-slate-600)',
+                  fontWeight: 700
+                }}>
+                  {count} scripts
+                </span>
+                <span style={{ fontSize: '0.72rem', opacity: isCurrentSec ? 0.9 : 0.7 }}>
+                  ({sec.teacherName})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Student Selector Bar */}
       <div className="student-script-selector">
-        {studentScripts.map((student) => (
+        {visibleScripts.map((student) => (
           <button
             key={student.id}
             onClick={() => setSelectedStudentId(student.id)}
-            className={`student-pill-btn ${selectedStudentId === student.id ? 'active' : ''}`}
+            className={`student-pill-btn ${currentStudent?.id === student.id ? 'active' : ''}`}
           >
             <FileText size={16} />
             <span>{student.studentName} ({student.studentId})</span>

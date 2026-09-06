@@ -1,0 +1,299 @@
+{
+  "id": "course_cse2201",
+  "code": "CSE 2201",
+  "title": "Design and Analysis of Algorithms",
+  "batch": "Batch 53",
+  "term": "Spring 2026",
+  "creatorId": "fac_01",
+  "creatorName": "Prof. Tariq Mahmud",
+  "question": {
+    "id": "q_cse2201_mid",
+    "number": "Question 2(b)",
+    "title": "In-Place Singly Linked List Reversal",
+    "prompt": "Write an algorithm or C++ function to reverse a singly linked list in O(n) time and O(1) auxiliary space. Clearly handle edge cases and return the pointer to the new head of the reversed list.",
+    "totalMarks": 5.0,
+    "bloomsLevel": "Apply / Analyze (Level 3-4)",
+    "authorInstructor": "Prof. Tariq Mahmud (Course In-Charge)",
+    "solutionNotes": "Must use iterative 3-pointer manipulation (prev, curr, next). Must handle empty list (head == NULL) and single node gracefully. Must return prev as new head. Penalize any auxiliary arrays or O(n) space.",
+    "sectionSpecificAllowances": {
+      "sec_a": "Prof. Tariq Mahmud: Accept both nullptr and NULL. In Section A, students were told returning prev without modifying head variable in caller is full credit if function returns Node*.",
+      "sec_b": "Lec. Nusrat Jahan: Standard iterative textbook approach required. Explicit check for head == NULL.",
+      "sec_c": "Dr. Kazi Tanvir Ahmed: Recursive helper reversal permitted if auxiliary stack space is acknowledged."
+    }
+  },
+  "rubricCriteria": [
+    {
+      "id": "crit_1",
+      "title": "Base & Edge Cases",
+      "weight": 1.0,
+      "maxMarks": 1.0,
+      "bloomLevel": "Understand",
+      "description": "Correct handling of empty list (head == NULL) and single-node list (head->next == NULL).",
+      "fullCredit": "Gracefully returns head or NULL without segmentation fault (1.0 mark).",
+      "partialCredit": "Checks for NULL head but misses single-node condition or minor boundary bug (0.5 marks).",
+      "zeroCredit": "No edge case handling; triggers null pointer dereference (0.0 marks)."
+    },
+    {
+      "id": "crit_2",
+      "title": "Core Pointer Reversal Logic",
+      "weight": 2.5,
+      "maxMarks": 2.5,
+      "bloomLevel": "Apply",
+      "description": "Iterative 3-pointer traversal (prev, curr, next) reversing links in O(n) time.",
+      "fullCredit": "Flawless loop structure, correct next storage, curr->next reversal, and pointer shifting (2.5 marks).",
+      "partialCredit": "3-pointer strategy used, but order of assignment contains a flaw or lost pointer (1.0 - 1.5 marks).",
+      "zeroCredit": "Completely flawed traversal logic, infinite loop, or disconnected nodes (0.0 marks)."
+    },
+    {
+      "id": "crit_3",
+      "title": "Return Value & List Integrity",
+      "weight": 1.5,
+      "maxMarks": 1.5,
+      "bloomLevel": "Analyze",
+      "description": "Correctly updates head or returns 'prev' as the new head pointer of the reversed list.",
+      "fullCredit": "Returns new head (prev) and ensures original head now points to NULL as tail (1.5 marks).",
+      "partialCredit": "List is inverted but returns void or forgets to return prev to caller (0.5 marks).",
+      "zeroCredit": "Returns original head (which now points to NULL, losing the entire list) (0.0 marks)."
+    }
+  ],
+  "penalties": [
+    {
+      "id": "pen_1",
+      "title": "Auxiliary Space Violation (> O(1))",
+      "deduction": 1.5,
+      "description": "Used vector, stack, or auxiliary array to store values rather than in-place reversal."
+    },
+    {
+      "id": "pen_2",
+      "title": "Memory Leak / Dangling Pointer",
+      "deduction": 0.5,
+      "description": "Leaves intermediate nodes unreferenced or introduces dangling memory."
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec_a",
+      "name": "Section A",
+      "enrolled": 54,
+      "teacherId": "fac_01",
+      "teacherName": "Prof. Tariq Mahmud",
+      "teacherDesignation": "Professor",
+      "role": "Course In-Charge",
+      "teachingNotes": "Iterative 3-pointer method emphasized. Stressed empty and single-node list edge cases. 0-based indexing used.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2201_a1",
+          "studentId": "20210104055",
+          "studentName": "Adnan Chowdhury",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "// Section A Student - In-place Singly Linked List Reversal\nNode* reverseList(Node* head) {\n    if (head == nullptr || head->next == nullptr) {\n        return head;\n    }\n    Node* prev = nullptr;\n    Node* curr = head;\n    Node* next = nullptr;\n\n    while (curr != nullptr) {\n        next = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = next;\n    }\n    return prev;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Perfect implementation. Used nullptr as taught in Section A. Handled edge cases.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Empty and single node both verified." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "Clean 3-pointer swap in O(n) time." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Returns prev pointer successfully." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Excellent work, Adnan! Flawless 3-pointer manipulation and full edge case coverage."
+        },
+        {
+          "id": "scr_cse2201_a2",
+          "studentId": "20210104082",
+          "studentName": "Sadia Rahman",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "// Section A Student\nNode* reverseList(Node* head) {\n    // Taught in Sec A lecture week 4: In-place helper recursion\n    if (head == nullptr || head->next == nullptr) return head;\n    Node* rest = reverseList(head->next);\n    head->next->next = head;\n    head->next = nullptr;\n    return rest;\n}",
+          "baseAiScore": 3.5,
+          "maxMarks": 5.0,
+          "status": "MODERATION_PENDING",
+          "evaluatorNotes": "Peer marker note: Student used recursion which consumes O(n) call stack space. Penalized 1.5 marks.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Correct base condition." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "Recursive head->next->next pointer reversal is correct." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Returns rest head correctly." },
+            { "criterionId": "pen_1", "title": "Space Penalty", "awarded": -1.5, "max": 0.0, "comment": "Auxiliary call stack > O(1)." }
+          ],
+          "courseTeacherAdjustment": 1.5,
+          "adjustmentReason": "Class Context Allowance: Covered recursive in-place method in Week 4 Section A lecture. Full credit granted by Course Teacher.",
+          "finalMarks": 5.0,
+          "feedbackNote": "Recursive logic is mathematically sound. While call stack uses O(n) frames, Prof. Tariq Mahmud approved this variation per Section A lecture guidelines."
+        },
+        {
+          "id": "scr_cse2201_a3",
+          "studentId": "20210104099",
+          "studentName": "Mehedi Hasan",
+          "section": "sec_a",
+          "sectionName": "Section A",
+          "sectionTeacher": "Prof. Tariq Mahmud",
+          "submittedCode": "// Section A Student - Attempt with two pointers\nNode* reverseList(Node* head) {\n    Node* prev = NULL;\n    Node* curr = head;\n    while (curr != NULL) {\n        Node* nextTemp = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = nextTemp;\n    }\n    return prev;\n}",
+          "baseAiScore": 4.5,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Correct iteration. Handled empty list implicitly, but missed explicit single node optimization comment.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 0.5, "max": 1.0, "comment": "Handles empty list via loop guard, but missing explicit head->next check." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "Precise iterative reversal logic." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Returns prev correctly." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 4.5,
+          "feedbackNote": "Very good solution! Consider adding explicit early returns for trivial single-element lists."
+        }
+      ]
+    },
+    {
+      "id": "sec_b",
+      "name": "Section B",
+      "enrolled": 52,
+      "teacherId": "fac_02",
+      "teacherName": "Lec. Nusrat Jahan",
+      "teacherDesignation": "Lecturer",
+      "role": "Question Paper Setter & Section Teacher",
+      "teachingNotes": "Followed standard textbook syntax. Set the common question paper for all sections.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2201_b1",
+          "studentId": "20210104118",
+          "studentName": "Tanvir Hossain",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "// Section B Student\nNode* reverseList(Node* head) {\n    Node* p = NULL;\n    Node* c = head;\n    while(c != NULL) {\n        Node* n = c->next;\n        c->next = p;\n        p = c;\n        c = n;\n    }\n    return head; // Forgot prev\n}",
+          "baseAiScore": 3.5,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Standard 3-pointer logic correct. Deducted 1.5 marks for returning head instead of prev per locked rubric.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Implicit empty check succeeds." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "Correct pointer traversal." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 0.0, "max": 1.5, "comment": "Returned original head, losing list." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 3.5,
+          "feedbackNote": "Your loop correctly inverts pointer directions. However, you returned 'head' which is now the last node; remember to return 'p' as the new head."
+        },
+        {
+          "id": "scr_cse2201_b2",
+          "studentId": "20210104122",
+          "studentName": "Farhana Yasmin",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "// Section B Student - Full iterative reversal\nNode* reverseList(Node* head) {\n    if (head == NULL) return NULL;\n    if (head->next == NULL) return head;\n    \n    Node* prev = NULL;\n    Node* curr = head;\n    Node* nextPtr = NULL;\n    \n    while (curr != NULL) {\n        nextPtr = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = nextPtr;\n    }\n    return prev;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Standard textbook compliant, exactly following Section B problem specifications.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Explicit NULL and single node checks present." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "Flawless pointer swaps." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Returns prev pointer correctly." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Clean, robust code with clear variable identifiers."
+        },
+        {
+          "id": "scr_cse2201_b3",
+          "studentId": "20210104130",
+          "studentName": "Kazi Fahim",
+          "section": "sec_b",
+          "sectionName": "Section B",
+          "sectionTeacher": "Lec. Nusrat Jahan",
+          "submittedCode": "// Section B Student\nNode* reverseList(Node* head) {\n    Node* p = NULL;\n    while(head != NULL) {\n        Node* n = head->next;\n        head->next = p;\n        p = head;\n        head = n;\n    }\n    return p;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Compact 2-pointer variant modifying local head. Meets all time/space requirements.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Safe traversal." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "Concise in-place inversion." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Returns p as new head." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Extremely concise C++ implementation. Well done."
+        }
+      ]
+    },
+    {
+      "id": "sec_c",
+      "name": "Section C",
+      "enrolled": 54,
+      "teacherId": "fac_03",
+      "teacherName": "Dr. Kazi Tanvir Ahmed",
+      "teacherDesignation": "Associate Professor",
+      "role": "Section Teacher",
+      "teachingNotes": "Permitted standard iterative approach or recursive helper approach if in-place.",
+      "studentScripts": [
+        {
+          "id": "scr_cse2201_c1",
+          "studentId": "20210104142",
+          "studentName": "Nafisa Anjum",
+          "section": "sec_c",
+          "sectionName": "Section C",
+          "sectionTeacher": "Dr. Kazi Tanvir Ahmed",
+          "submittedCode": "// Section C Student\nNode* reverseList(Node* head) {\n    std::vector<int> vals;\n    Node* temp = head;\n    while(temp != NULL) {\n        vals.push_back(temp->data);\n        temp = temp->next;\n    }\n    temp = head;\n    for(int i = vals.size()-1; i >= 0; i--) {\n        temp->data = vals[i];\n        temp = temp->next;\n    }\n    return head;\n}",
+          "baseAiScore": 2.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Severe space penalty: Copied data into std::vector instead of in-place pointer reversal. O(n) space violated.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Handles empty list safely." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 1.0, "max": 2.5, "comment": "Did not reverse pointers; modified node data values." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Returns head." },
+            { "criterionId": "pen_1", "title": "Space Penalty", "awarded": -1.5, "max": 0.0, "comment": "Violated O(1) space constraint by using std::vector." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 2.0,
+          "feedbackNote": "You modified node data using a vector rather than reversing node links in-place. The question specifically mandated O(1) auxiliary space."
+        },
+        {
+          "id": "scr_cse2201_c2",
+          "studentId": "20210104156",
+          "studentName": "Rashedul Islam",
+          "section": "sec_c",
+          "sectionName": "Section C",
+          "sectionTeacher": "Dr. Kazi Tanvir Ahmed",
+          "submittedCode": "// Section C Student - Iterative method\nNode* reverseList(Node* head) {\n    Node* prev = NULL;\n    Node* curr = head;\n    while (curr) {\n        Node* n = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = n;\n    }\n    return prev;\n}",
+          "baseAiScore": 5.0,
+          "maxMarks": 5.0,
+          "status": "APPROVED",
+          "evaluatorNotes": "Clean, meets all criteria in Section C.",
+          "breakdown": [
+            { "criterionId": "crit_1", "title": "Base & Edge Cases", "awarded": 1.0, "max": 1.0, "comment": "Implicit checks succeed." },
+            { "criterionId": "crit_2", "title": "Pointer Logic", "awarded": 2.5, "max": 2.5, "comment": "O(n) time, O(1) space." },
+            { "criterionId": "crit_3", "title": "Return Value", "awarded": 1.5, "max": 1.5, "comment": "Correct prev returned." }
+          ],
+          "courseTeacherAdjustment": 0,
+          "adjustmentReason": "",
+          "finalMarks": 5.0,
+          "feedbackNote": "Accurate and efficient implementation."
+        }
+      ]
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam_cse2201_mid",
+      "title": "Midterm Examination",
+      "date": "2026-03-15",
+      "totalMarks": 20.0,
+      "questionsCount": 4,
+      "status": "GRADING_IN_PROGRESS"
+    }
+  ]
+}
