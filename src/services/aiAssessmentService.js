@@ -1,24 +1,30 @@
 // GradeCalibrate AI Assessment Service
 // Backend-ready architecture: Connects directly to backend or environment AI pipeline without frontend key inputs.
 
+import { getStoredApiKey } from './geminiService';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 /**
  * Generate a structured OBE Rubric from question parameters
  */
 export async function generateRubricWithAI({ questionPrompt, totalMarks, solutionNotes, bloomsLevel, sectionContext }) {
-  // If backend endpoint is available, dispatch request
-  if (API_BASE_URL) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/rubric/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionPrompt, totalMarks, solutionNotes, bloomsLevel, sectionContext })
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      console.warn("Backend API not reachable, using local academic synthesizer.", e);
+  try {
+    const endpoint = `${API_BASE_URL}/api/rubric/generate`;
+    const headers = { "Content-Type": "application/json" };
+    const storedKey = getStoredApiKey();
+    if (storedKey) {
+      headers['x-gemini-api-key'] = storedKey;
     }
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ questionPrompt, totalMarks, solutionNotes, bloomsLevel, sectionContext, apiKey: storedKey })
+    });
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn("Backend API not reachable, using local academic synthesizer.", e);
   }
 
   // Intelligent OBE Decomposition Engine
@@ -87,18 +93,22 @@ export async function generateRubricWithAI({ questionPrompt, totalMarks, solutio
  * AI Assessment of a Student Script against the Locked Rubric
  */
 export async function assessScriptWithAI({ scriptCode, rubric, penalties, sectionNotes, courseInCharge }) {
-  // If backend endpoint is available, dispatch request
-  if (API_BASE_URL) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/assessment/evaluate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scriptCode, rubric, penalties, sectionNotes, courseInCharge })
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      console.warn("Backend API not reachable, using local academic evaluator.", e);
+  try {
+    const endpoint = `${API_BASE_URL}/api/assessment/evaluate`;
+    const headers = { "Content-Type": "application/json" };
+    const storedKey = getStoredApiKey();
+    if (storedKey) {
+      headers['x-gemini-api-key'] = storedKey;
     }
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ scriptCode, rubric, penalties, sectionNotes, courseInCharge, apiKey: storedKey })
+    });
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn("Backend API not reachable, using local academic evaluator.", e);
   }
 
   // Built-in AI Evaluation Engine

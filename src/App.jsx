@@ -135,8 +135,7 @@ function App() {
     const saved = await createCourseOnBackend(newCourse);
     const courseToAdd = saved || newCourse;
     setCourses(prev => [courseToAdd, ...prev]);
-    setActiveCourse(courseToAdd);
-    setSelectedSection(courseToAdd.sections[0]?.id || 'sec_a');
+    handleSelectCourse(courseToAdd);
   };
 
   // If user is not logged in, render the Signup / Login Screen first

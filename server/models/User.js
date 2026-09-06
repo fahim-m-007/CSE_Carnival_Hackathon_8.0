@@ -56,14 +56,13 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return enteredPassword === this.password;
 };
 
-// Pre-save password hashing
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) return next();
+// Pre-save password hashing (Mongoose async hook)
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) return;
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 const User = mongoose.model('User', userSchema);

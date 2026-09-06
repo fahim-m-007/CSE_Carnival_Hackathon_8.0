@@ -6,11 +6,11 @@ const router = express.Router();
 // @desc    Generate standardized OBE Rubric using Gemini API or built-in academic synthesizer
 router.post('/generate', async (req, res) => {
   const { questionPrompt, totalMarks, solutionNotes, bloomsLevel, sectionContext } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = (process.env.GEMINI_API_KEY || req.headers['x-gemini-api-key'] || req.body.apiKey || '').trim();
 
   if (apiKey) {
-    try {
-      const systemInstruction = `You are an expert academic evaluator and OBE (Outcome-Based Education) coordinator for the Department of Computer Science & Engineering at Ahsanullah University of Science and Technology (AUST). 
+    const modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    const systemInstruction = `You are an expert academic evaluator and OBE (Outcome-Based Education) coordinator for the Department of Computer Science & Engineering at Ahsanullah University of Science and Technology (AUST). 
 Decompose the university exam question into an objective, standardized grading rubric with clear criteria, mark weightages summing exactly to ${totalMarks}, Bloom's taxonomy levels, and partial credit guides. Also identify reasonable penalty rules.
 
 Return STRICT JSON format only:
@@ -39,34 +39,48 @@ Return STRICT JSON format only:
   "sectionGuidanceNote": "How section-specific nuances or teaching allowances should be treated"
 }`;
 
-      const userContent = `Exam Question: ${questionPrompt || "Write an algorithm or function to solve the problem."}
+    const userContent = `Exam Question: ${questionPrompt || "Write an algorithm or function to solve the problem."}
 Total Marks: ${totalMarks || 5.0}
 Blooms Taxonomy Target: ${bloomsLevel || "Apply / Analyze"}
 Teacher's Key Notes / Expected Solution: ${solutionNotes || "Standard optimal algorithm required"}
 Section Teaching Context / Allowances: ${sectionContext || "Standard syllabus"}`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `${systemInstruction}\n\n${userContent}` }] }],
-            generationConfig: { responseMimeType: 'application/json' }
-          })
-        }
-      );
+    for (const model of modelsToTry) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(12000),
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `${systemInstruction}\n\n${userContent}` }] }],
+              generationConfig: { responseMimeType: 'application/json' }
+            })
+          }
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-          return res.json(parsed);
+        if (response.ok) {
+          const data = await response.json();
+          const parts = data?.candidates?.[0]?.content?.parts || [];
+          const textPart = parts.find(p => p.text && p.text.trim().length > 0);
+          const rawText = textPart?.text;
+          if (rawText) {
+            const cleanText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            return res.json({
+              ...parsed,
+              modelUsed: model,
+              isLiveGemini: true
+            });
+          }
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          console.warn(`Gemini ${model} returned HTTP ${response.status}:`, errData?.error?.message || response.statusText);
         }
+      } catch (err) {
+        console.warn(`Backend Gemini (${model}) rubric generation failed:`, err.message);
       }
-    } catch (err) {
-      console.warn('Backend Gemini call failed, falling back to academic synthesizer:', err.message);
     }
   }
 

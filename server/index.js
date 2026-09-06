@@ -11,6 +11,7 @@ import courseRoutes from './routes/courseRoutes.js';
 import scriptRoutes from './routes/scriptRoutes.js';
 import rubricRoutes from './routes/rubricRoutes.js';
 import assessmentRoutes from './routes/assessmentRoutes.js';
+import configRoutes from './routes/configRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +49,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/scripts', scriptRoutes);
 app.use('/api/rubric', rubricRoutes);
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/config', configRoutes);
 
 // Root fallback
 app.get('/', (req, res) => {

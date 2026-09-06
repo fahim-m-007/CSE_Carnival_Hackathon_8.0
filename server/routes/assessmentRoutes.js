@@ -6,21 +6,29 @@ const router = express.Router();
 // @desc    Evaluate a student script code against a locked rubric
 router.post('/evaluate', async (req, res) => {
   const { scriptCode = '', rubric = [], penalties = [], sectionNotes = '', courseInCharge = '' } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = (process.env.GEMINI_API_KEY || req.headers['x-gemini-api-key'] || req.body.apiKey || '').trim();
 
   if (apiKey) {
-    try {
-      const prompt = `You are an AI Grading Mediator for AUST CSE Carnival.
-Evaluate this student script against the locked Rubric:
+    const modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    const prompt = `You are an expert AI Academic Examiner for the Department of Computer Science & Engineering at Ahsanullah University of Science and Technology (AUST).
+Evaluate this student source code submission objectively against the locked Rubric:
 Rubric: ${JSON.stringify(rubric)}
 Penalties: ${JSON.stringify(penalties)}
-Section Teaching Context: ${sectionNotes || "None"}
+Section Teaching Context / Allowances: ${sectionNotes || "Standard department curriculum"}
 Course In-Charge: ${courseInCharge || "Prof. Tariq Mahmud"}
 
-Student Script:
+Student Submission Code:
+\`\`\`
 ${scriptCode}
+\`\`\`
 
-Return STRICT JSON:
+Evaluate each rubric criterion rigorously:
+- Check for exact syntax, pointer logic, algorithm correctness, edge case handling, and space/time complexity.
+- Award marks strictly within [0.0, criterion.maxMarks].
+- Apply any applicable penalties.
+- Provide a polite, constructive, and transparent feedback explanation for the student viewing their script.
+
+Return STRICT JSON ONLY without markdown formatting:
 {
   "totalAwarded": number,
   "evaluatorNotes": "string",
@@ -36,27 +44,42 @@ Return STRICT JSON:
   "feedbackNote": "Constructive, transparent feedback explanation for the student."
 }`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json' }
-          })
-        }
-      );
+    for (const model of modelsToTry) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(12000),
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: 'application/json' }
+            })
+          }
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          return res.json(JSON.parse(rawText));
+        if (response.ok) {
+          const data = await response.json();
+          const parts = data?.candidates?.[0]?.content?.parts || [];
+          const textPart = parts.find(p => p.text && p.text.trim().length > 0);
+          const rawText = textPart?.text;
+          if (rawText) {
+            const cleanText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            return res.json({
+              ...parsed,
+              modelUsed: model,
+              isLiveGemini: true
+            });
+          }
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          console.warn(`Gemini ${model} returned HTTP ${response.status}:`, errData?.error?.message || response.statusText);
         }
+      } catch (err) {
+        console.warn(`Backend Gemini (${model}) evaluation failed:`, err.message);
       }
-    } catch (err) {
-      console.warn('Backend live Gemini evaluation failed, falling back:', err.message);
     }
   }
 
@@ -128,7 +151,9 @@ Return STRICT JSON:
     breakdown,
     feedbackNote: totalScore >= 4.0
       ? 'Outstanding submission! Your algorithm logic, edge case handling, and space complexity fully satisfy the course standards.'
-      : 'Good attempt. Please review the criteria breakdown above for specific areas where marks were adjusted.'
+      : 'Good attempt. Please review the criteria breakdown above for specific areas where marks were adjusted.',
+    modelUsed: 'academic-synthesizer',
+    isLiveGemini: false
   });
 });
 

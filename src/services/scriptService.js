@@ -62,3 +62,24 @@ export async function batchApproveSectionScripts(courseId, section) {
   }
   return null;
 }
+
+/**
+ * Create a new student script on the backend.
+ */
+export async function createScriptOnBackend(scriptData) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/scripts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(scriptData)
+    });
+
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn("Could not create script on backend:", err);
+  }
+  return scriptData;
+}
+
