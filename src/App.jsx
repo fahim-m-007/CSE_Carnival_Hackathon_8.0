@@ -21,6 +21,7 @@ import {
   BarChart3,
   Layers
 } from 'lucide-react';
+import { isUserAssignedToCourse, getAssignedSectionsForTeacher } from './services/courseService';
 
 function App() {
   // Authentication State (Starts at null to show Signup/Login screen first)
@@ -56,10 +57,19 @@ function App() {
     setActiveCourse(null);
   };
 
-  // Course Handlers
+  // Course Handlers with Strict Access Control
   const handleSelectCourse = (course) => {
+    // Security check: Only allow access if user is assigned to this course
+    if (!isUserAssignedToCourse(course, currentUser)) {
+      alert(`Access Restricted: You (${currentUser.name}) are not assigned to teach or coordinate ${course.code}: ${course.title}.`);
+      return;
+    }
+
     setActiveCourse(course);
-    const initialSec = course.sections?.[0]?.id || 'sec_a';
+    
+    // Automatically select the section that THIS teacher is assigned to
+    const mySections = getAssignedSectionsForTeacher(course, currentUser);
+    const initialSec = mySections.length > 0 ? mySections[0].id : (course.sections?.[0]?.id || 'sec_a');
     setSelectedSection(initialSec);
     setActiveCourseTab('rubric');
 
@@ -171,7 +181,9 @@ function App() {
                 penalties={penalties}
                 setPenalties={setPenalties}
                 selectedSection={selectedSection}
+                onSelectSection={setSelectedSection}
                 courseData={activeCourse}
+                currentUser={currentUser}
                 isLocked={isRubricLocked}
                 setIsLocked={setIsRubricLocked}
                 onProceedToAssessment={() => setActiveCourseTab('assessment')}

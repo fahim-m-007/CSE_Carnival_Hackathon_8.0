@@ -25,7 +25,9 @@ export function RubricStudio({
   penalties,
   setPenalties,
   selectedSection,
+  onSelectSection,
   courseData,
+  currentUser,
   isLocked,
   setIsLocked,
   onProceedToAssessment
@@ -229,30 +231,50 @@ export function RubricStudio({
             </div>
 
             {/* SECTION TEACHING CONTEXT BOX (User's specific university requirement) */}
-            <div className="section-context-box">
-              <div className="section-context-header">
-                <span className="section-context-badge">
-                  <Layers size={14} />
-                  <span>Section Teaching Context: {currentSection.name}</span>
-                </span>
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--aust-green-dark)' }}>
-                  Instructor: {currentSection.instructor}
-                </span>
-              </div>
-              <p className="section-context-desc">
-                {currentSection.isCourseInCharge
-                  ? `As Course-In-Charge for ${currentSection.name}, specify any alternative notations, methods, or syntax taught during your class lectures that peer markers must honor.`
-                  : `Question was authored by ${currentSection.instructor}. Notes reflect standard syllabus conventions.`}
-              </p>
-              <textarea
-                rows={3}
-                value={sectionAllowance}
-                onChange={(e) => handleAllowanceChange(e.target.value)}
-                className="section-context-input"
-                placeholder="e.g., In Section A, returning 'prev' without mutating 'head' in main is accepted for full credit. 0-based indexing taught."
-                disabled={isLocked}
-              />
-            </div>
+            {(() => {
+              const teacherName = currentSection.teacherName || currentSection.instructor || 'Faculty Member';
+              const isMySection = currentSection.teacherId === currentUser?.id || teacherName.toLowerCase() === currentUser?.name?.toLowerCase();
+              const isCoordinator = courseData.creatorId === currentUser?.id || courseData.creatorName?.toLowerCase() === currentUser?.name?.toLowerCase();
+              const canEditSectionContext = !isLocked && (isMySection || isCoordinator);
+
+              return (
+                <div className="section-context-box">
+                  <div className="section-context-header">
+                    <span className="section-context-badge">
+                      <Layers size={14} />
+                      <span>Section Teaching Context: {currentSection.name}</span>
+                    </span>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--aust-green-dark)' }}>
+                      Instructor: {teacherName} {isMySection && '• (You)'}
+                    </span>
+                  </div>
+                  <p className="section-context-desc">
+                    {isCoordinator
+                      ? `As Course In-Charge / Coordinator, you can review or calibrate section-specific allowances across all sections.`
+                      : isMySection
+                        ? `As the assigned instructor for ${currentSection.name}, specify any alternative notations, algorithms, or syntax taught in your lectures that peer markers must accept.`
+                        : `Teaching notes recorded for ${currentSection.name} by ${teacherName}.`}
+                  </p>
+                  <textarea
+                    rows={3}
+                    value={sectionAllowance}
+                    onChange={(e) => handleAllowanceChange(e.target.value)}
+                    className="section-context-input"
+                    placeholder="e.g., In Section A, returning 'prev' without mutating 'head' in main is accepted for full credit. 0-based indexing taught."
+                    disabled={!canEditSectionContext}
+                    style={{
+                      background: canEditSectionContext ? 'var(--aust-white)' : 'var(--aust-slate-100)',
+                      cursor: canEditSectionContext ? 'text' : 'not-allowed'
+                    }}
+                  />
+                  {!canEditSectionContext && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--aust-slate-500)', marginTop: '6px' }}>
+                      🔒 Read-Only: Only the assigned instructor ({teacherName}) or Course In-Charge can modify this section's teaching context.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Action Bar */}
             <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>

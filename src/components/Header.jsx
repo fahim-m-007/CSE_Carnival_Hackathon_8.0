@@ -60,11 +60,14 @@ export function Header({
                 onChange={(e) => onSelectSection(e.target.value)}
                 title="Active Section Perspective"
               >
-                {activeCourse.sections.map((sec) => (
-                  <option key={sec.id} value={sec.id}>
-                    {sec.name} — {sec.teacherName} ({sec.teacherDesignation})
-                  </option>
-                ))}
+                {activeCourse.sections.map((sec) => {
+                  const isMySec = sec.teacherId === currentUser.id || sec.teacherName?.toLowerCase() === currentUser.name?.toLowerCase();
+                  return (
+                    <option key={sec.id} value={sec.id}>
+                      {sec.name} — {sec.teacherName} {isMySec ? '• (Your Section)' : '• (View Only)'}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>

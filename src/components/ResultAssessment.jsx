@@ -12,6 +12,7 @@ import {
   Lock
 } from 'lucide-react';
 import { assessScriptWithAI } from '../services/aiAssessmentService';
+import { isCourseInCharge } from '../services/courseService';
 
 export function ResultAssessment({
   studentScripts,
@@ -36,7 +37,19 @@ export function ResultAssessment({
   // Active student guaranteed to belong to visible section if possible
   const currentStudent = visibleScripts.find(s => s.id === selectedStudentId) || visibleScripts[0] || studentScripts[0];
   const currentSectionObj = course.sections.find(s => s.id === selectedSection) || course.sections[0];
-  const isSectionTeacher = currentStudent ? (currentStudent.sectionTeacher === currentUser.name || currentStudent.section === selectedSection) : false;
+
+  // STRICT RBAC: User can moderate ONLY if assigned to this section OR is Course In-Charge
+  const currentSectionTeacherName = currentSectionObj?.teacherName || currentSectionObj?.instructor;
+  const isAssignedToThisSection = Boolean(
+    currentSectionObj?.teacherId === currentUser.id ||
+    currentSectionTeacherName?.toLowerCase() === currentUser.name?.toLowerCase() ||
+    (currentStudent && (
+      currentStudent.sectionTeacher?.toLowerCase() === currentUser.name?.toLowerCase() ||
+      currentStudent.teacherId === currentUser.id
+    ))
+  );
+  const isCoordinator = isCourseInCharge(course, currentUser);
+  const canModerate = isAssignedToThisSection || isCoordinator;
 
   // AI Evaluation against the Locked Rubric
   const handleRunAiEvaluation = async () => {
@@ -314,16 +327,40 @@ export function ResultAssessment({
             </div>
 
             <p style={{ fontSize: '0.85rem', color: 'var(--aust-slate-700)', marginBottom: '12px' }}>
-              {isSectionTeacher ? (
+              {isAssignedToThisSection ? (
                 <span>
-                  You are the <strong>Course Teacher for {currentStudent.sectionName}</strong>. If this student lost marks because the question setter did not recognize a notation or method taught in your classroom lectures, you have the department authority to adjust marks here with a recorded reason.
+                  You are the <strong>Assigned Course Teacher for {currentStudent.sectionName}</strong>. If this student lost marks because the question setter did not recognize a notation or method taught in your classroom lectures, you have the department authority to adjust marks here with a recorded reason.
+                </span>
+              ) : isCoordinator ? (
+                <span>
+                  You are the <strong>Course In-Charge / Coordinator</strong>. You have overarching authority to calibrate and harmonize marks across all sections.
                 </span>
               ) : (
                 <span>
-                  Viewing {currentStudent.sectionName} script. Course-In-Charge: <strong>{currentStudent.sectionTeacher}</strong>.
+                  Viewing {currentStudent.sectionName} script. (Assigned Instructor: <strong>{currentStudent.sectionTeacher}</strong>).
                 </span>
               )}
             </p>
+
+            {!canModerate && (
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px dashed var(--aust-slate-300)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '12px 14px',
+                marginBottom: '14px',
+                fontSize: '0.82rem',
+                color: 'var(--aust-slate-600)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <Lock size={18} color="var(--aust-slate-400)" style={{ flexShrink: 0 }} />
+                <div>
+                  <strong>View-Only Observation Mode:</strong> You are viewing {currentStudent.sectionName} taught by <strong>{currentStudent.sectionTeacher}</strong>. Mark adjustments and official sign-offs are restricted to the assigned course teacher.
+                </div>
+              </div>
+            )}
 
             <div className="adjustment-controls">
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--aust-slate-800)' }}>
@@ -332,26 +369,38 @@ export function ResultAssessment({
 
               <div className="adjustment-btn-group">
                 <button
+                  type="button"
+                  disabled={!canModerate}
                   onClick={() => handleApplyAdjustment(0, "")}
                   className={`adjust-btn ${currentStudent.courseTeacherAdjustment === 0 ? 'active' : ''}`}
+                  style={{ opacity: canModerate ? 1 : 0.45, cursor: canModerate ? 'pointer' : 'not-allowed' }}
                 >
                   0.0 (Standard)
                 </button>
                 <button
+                  type="button"
+                  disabled={!canModerate}
                   onClick={() => handleApplyAdjustment(0.5, "Class Context: Covered boundary tolerance in lecture.")}
                   className={`adjust-btn ${currentStudent.courseTeacherAdjustment === 0.5 ? 'active' : ''}`}
+                  style={{ opacity: canModerate ? 1 : 0.45, cursor: canModerate ? 'pointer' : 'not-allowed' }}
                 >
                   +0.5 Mark
                 </button>
                 <button
+                  type="button"
+                  disabled={!canModerate}
                   onClick={() => handleApplyAdjustment(1.0, "Class Context: Accepted alternative notation per Week 4 lecture.")}
                   className={`adjust-btn ${currentStudent.courseTeacherAdjustment === 1.0 ? 'active' : ''}`}
+                  style={{ opacity: canModerate ? 1 : 0.45, cursor: canModerate ? 'pointer' : 'not-allowed' }}
                 >
                   +1.0 Mark
                 </button>
                 <button
-                  onClick={() => handleApplyAdjustment(1.5, "Class Context: In-place recursive helper method authorized by Prof. Tariq in Section A lecture.")}
+                  type="button"
+                  disabled={!canModerate}
+                  onClick={() => handleApplyAdjustment(1.5, `Class Context: Alternative algorithm approved by ${currentStudent.sectionTeacher} in lecture.`)}
                   className={`adjust-btn ${currentStudent.courseTeacherAdjustment === 1.5 ? 'active' : ''}`}
+                  style={{ opacity: canModerate ? 1 : 0.45, cursor: canModerate ? 'pointer' : 'not-allowed' }}
                 >
                   +1.5 Marks (Class Allowance)
                 </button>
