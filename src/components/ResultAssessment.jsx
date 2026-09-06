@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { assessScriptWithAI } from '../services/aiAssessmentService';
 import { isCourseInCharge } from '../services/courseService';
+import { updateScriptOnBackend } from '../services/scriptService';
 
 export function ResultAssessment({
   studentScripts,
@@ -64,16 +65,24 @@ export function ResultAssessment({
       });
 
       if (evalResult) {
+        const base = evalResult.totalAwarded;
+        const finalMarks = Number((base + (currentStudent.courseTeacherAdjustment || 0)).toFixed(1));
+        const updatePayload = {
+          baseAiScore: base,
+          breakdown: evalResult.breakdown,
+          feedbackNote: evalResult.feedbackNote,
+          finalMarks
+        };
+
+        // Persist to MongoDB backend
+        updateScriptOnBackend(currentStudent.id, updatePayload);
+
         setStudentScripts(prev =>
           prev.map(s => {
             if (s.id === currentStudent.id) {
-              const base = evalResult.totalAwarded;
               return {
                 ...s,
-                baseAiScore: base,
-                breakdown: evalResult.breakdown,
-                feedbackNote: evalResult.feedbackNote,
-                finalMarks: Number((base + (s.courseTeacherAdjustment || 0)).toFixed(1))
+                ...updatePayload
               };
             }
             return s;
@@ -90,16 +99,23 @@ export function ResultAssessment({
   // Course Teacher applies Class Context Adjustment
   const handleApplyAdjustment = (deltaMarks, reasonText) => {
     const marksToAdd = parseFloat(deltaMarks) || 0;
+    const newFinal = Math.min(currentStudent.maxMarks, Math.max(0, currentStudent.baseAiScore + marksToAdd));
+    const updatePayload = {
+      courseTeacherAdjustment: marksToAdd,
+      adjustmentReason: reasonText || "Class Context Allowance granted by Course Teacher.",
+      finalMarks: Number(newFinal.toFixed(1)),
+      status: "APPROVED"
+    };
+
+    // Persist to MongoDB backend
+    updateScriptOnBackend(currentStudent.id, updatePayload);
+
     setStudentScripts(prev =>
       prev.map(s => {
         if (s.id === currentStudent.id) {
-          const newFinal = Math.min(s.maxMarks, Math.max(0, s.baseAiScore + marksToAdd));
           return {
             ...s,
-            courseTeacherAdjustment: marksToAdd,
-            adjustmentReason: reasonText || "Class Context Allowance granted by Course Teacher.",
-            finalMarks: Number(newFinal.toFixed(1)),
-            status: "APPROVED"
+            ...updatePayload
           };
         }
         return s;

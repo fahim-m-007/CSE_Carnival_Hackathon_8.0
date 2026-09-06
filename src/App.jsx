@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import {
   INITIAL_FACULTY_USERS,
@@ -21,11 +21,21 @@ import {
   BarChart3,
   Layers
 } from 'lucide-react';
-import { isUserAssignedToCourse, getAssignedSectionsForTeacher } from './services/courseService';
+import {
+  isUserAssignedToCourse,
+  getAssignedSectionsForTeacher,
+  getCoursesForUser,
+  createCourseOnBackend,
+  checkBackendHealth
+} from './services/courseService';
+import { fetchScripts } from './services/scriptService';
 
 function App() {
   // Authentication State (Starts at null to show Signup/Login screen first)
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Backend Health & DB Status
+  const [dbHealth, setDbHealth] = useState(null);
 
   // Courses & Active Course Selection
   const [courses, setCourses] = useState(INITIAL_COURSES);
@@ -47,9 +57,28 @@ function App() {
   // Student Scripts & Grading State
   const [studentScripts, setStudentScripts] = useState(INITIAL_STUDENT_SCRIPTS);
 
+  // Check backend health on mount
+  useEffect(() => {
+    checkBackendHealth().then(status => {
+      setDbHealth(status);
+    });
+  }, []);
+
+  const loadCourses = async (user) => {
+    try {
+      const fetched = await getCoursesForUser(user);
+      if (fetched && fetched.length > 0) {
+        setCourses(fetched);
+      }
+    } catch (e) {
+      console.warn("Could not load user courses from backend:", e);
+    }
+  };
+
   // Auth Handlers
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
+    loadCourses(user);
   };
 
   const handleLogout = () => {
@@ -73,12 +102,12 @@ function App() {
     setSelectedSection(initialSec);
     setActiveCourseTab('rubric');
 
-    // Load question, rubric, penalties, and student scripts from selected course JSON
+    // Load question, rubric, penalties from course
     if (course.question) setQuestion(course.question);
     if (course.rubricCriteria) setRubricCriteria(course.rubricCriteria);
     if (course.penalties) setPenalties(course.penalties);
 
-    // Aggregate all preloaded student scripts from each section of this course
+    // Aggregate preloaded student scripts from course
     const allCourseScripts = (course.sections || []).flatMap(sec =>
       (sec.studentScripts || []).map(scr => ({
         ...scr,
@@ -88,16 +117,26 @@ function App() {
       }))
     );
     setStudentScripts(allCourseScripts);
+
+    // Fetch updated scripts from MongoDB backend if available
+    fetchScripts(course.id).then(liveScripts => {
+      if (liveScripts && liveScripts.length > 0) {
+        setStudentScripts(liveScripts);
+      }
+    });
   };
 
   const handleBackToDashboard = () => {
     setActiveCourse(null);
   };
 
-  const handleCourseCreated = (newCourse) => {
-    setCourses([newCourse, ...courses]);
-    setActiveCourse(newCourse);
-    setSelectedSection(newCourse.sections[0]?.id || 'sec_a');
+  const handleCourseCreated = async (newCourse) => {
+    // Save to backend MongoDB
+    const saved = await createCourseOnBackend(newCourse);
+    const courseToAdd = saved || newCourse;
+    setCourses(prev => [courseToAdd, ...prev]);
+    setActiveCourse(courseToAdd);
+    setSelectedSection(courseToAdd.sections[0]?.id || 'sec_a');
   };
 
   // If user is not logged in, render the Signup / Login Screen first
@@ -228,8 +267,28 @@ function App() {
           <div>
             <strong>GradeCalibrate</strong> — Built for <strong>AUST CSE Carnival &lt;8.0/&gt; AI Build Hackathon Final Round</strong>
           </div>
-          <div>
-            Ahsanullah University of Science and Technology • Outcome-Based Education (OBE) & BAETE Standard Compliant
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span>Ahsanullah University of Science and Technology • OBE Standard</span>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: dbHealth?.database?.isConnected ? '#ecfdf5' : '#fef9c3',
+              color: dbHealth?.database?.isConnected ? '#065f46' : '#854d0e',
+              border: `1px solid ${dbHealth?.database?.isConnected ? '#a7f3d0' : '#fde047'}`,
+              padding: '3px 10px',
+              borderRadius: '12px',
+              fontSize: '0.74rem',
+              fontWeight: 700
+            }}>
+              <span style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: dbHealth?.database?.isConnected ? '#10b981' : '#eab308'
+              }}></span>
+              MongoDB Atlas: {dbHealth?.database?.isConnected ? 'Connected' : (dbHealth?.database?.status || 'Active (Local Sync)')}
+            </span>
           </div>
         </div>
       </footer>

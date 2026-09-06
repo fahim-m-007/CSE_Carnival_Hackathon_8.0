@@ -19,7 +19,7 @@ export function Auth({ onLoginSuccess }) {
     'Adjunct Faculty'
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -27,6 +27,31 @@ export function Auth({ onLoginSuccess }) {
       if (!name || !email || !password) {
         setError('Please fill in all required fields.');
         return;
+      }
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            designation,
+            department,
+            university: 'Ahsanullah University of Science and Technology'
+          })
+        });
+        if (res.ok) {
+          const user = await res.json();
+          onLoginSuccess(user);
+          return;
+        } else {
+          const errData = await res.json();
+          setError(errData.message || 'Registration failed');
+          return;
+        }
+      } catch (apiErr) {
+        console.warn('API error during registration, falling back:', apiErr);
       }
       const newUser = {
         id: `fac_${Date.now()}`,
@@ -44,6 +69,21 @@ export function Auth({ onLoginSuccess }) {
         setError('Please enter your email and password.');
         return;
       }
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          const user = await res.json();
+          onLoginSuccess(user);
+          return;
+        }
+      } catch (apiErr) {
+        console.warn('API error during login, falling back:', apiErr);
+      }
+
       const found = INITIAL_FACULTY_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
       if (found) {
         onLoginSuccess(found);

@@ -1,4 +1,4 @@
-// Course Service - Centralized Access Control & Backend-Ready Course Management
+// Course Service - Centralized Access Control & Backend-Connected Course Management
 import { CSE_22_COURSES, getAllCourses as getLocalAllCourses } from '../data/courses/index.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -66,19 +66,14 @@ export function isCourseInCharge(course, user) {
 
 /**
  * Checks if the user has moderation and grade adjustment authority for a specific section.
- * Authority is granted IF:
- * 1. The user is the specific teacher assigned to that section.
- * 2. OR the user is the designated Course In-Charge for the whole course.
  */
 export function canTeacherModerateSection(course, sectionId, user) {
   if (!course || !user) return false;
 
-  // Course In-Charge has overarching moderation rights
   if (isCourseInCharge(course, user)) {
     return true;
   }
 
-  // Otherwise, user must be the assigned instructor for this specific section
   const targetSection = (course.sections || []).find(s => s.id === sectionId);
   if (!targetSection) return false;
 
@@ -91,18 +86,21 @@ export function canTeacherModerateSection(course, sectionId, user) {
 
 /**
  * Fetch all courses assigned to the logged-in user.
- * Connects to backend if API URL exists, otherwise filters local JSON courses.
+ * Connects to MongoDB backend via proxy, with graceful local fallback.
  */
 export async function getCoursesForUser(user) {
-  if (API_BASE_URL) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/courses?teacherId=${user.id}`, {
-        headers: { "Content-Type": "application/json" }
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      console.warn("Backend API not reachable, falling back to local JSON database.", e);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/courses?teacherId=${user?.id || ''}&email=${encodeURIComponent(user?.email || '')}&name=${encodeURIComponent(user?.name || '')}`, {
+      headers: { "Content-Type": "application/json" }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
     }
+  } catch (e) {
+    console.warn("Backend API not reachable, using local catalog.", e);
   }
 
   const all = getLocalAllCourses();
@@ -110,19 +108,90 @@ export async function getCoursesForUser(user) {
 }
 
 /**
- * Get all department courses (for catalog view with access badges).
+ * Get all department courses.
  */
 export async function getAllDepartmentCourses() {
-  if (API_BASE_URL) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/courses/all`, {
-        headers: { "Content-Type": "application/json" }
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      console.warn("Backend API not reachable, falling back to local JSON database.", e);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/courses/all`, {
+      headers: { "Content-Type": "application/json" }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
     }
+  } catch (e) {
+    console.warn("Backend API not reachable, using local catalog.", e);
   }
 
   return getLocalAllCourses();
+}
+
+/**
+ * Fetch single course by ID.
+ */
+export async function getCourseByIdFromBackend(courseId) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/courses/${courseId}`, {
+      headers: { "Content-Type": "application/json" }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn("Could not fetch course from backend:", e);
+  }
+  return null;
+}
+
+/**
+ * Create a new course in the backend.
+ */
+export async function createCourseOnBackend(courseData) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/courses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(courseData)
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn("Could not save course to backend:", e);
+  }
+  return courseData;
+}
+
+/**
+ * Update course in backend (rubric, question, penalties, lock state).
+ */
+export async function updateCourseOnBackend(courseId, updateData) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/courses/${courseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updateData)
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn("Could not update course on backend:", e);
+  }
+  return updateData;
+}
+
+/**
+ * Check backend and MongoDB connection status.
+ */
+export async function checkBackendHealth() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/health`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    return { status: 'offline', error: e.message };
+  }
+  return { status: 'offline' };
 }
